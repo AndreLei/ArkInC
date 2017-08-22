@@ -6,22 +6,13 @@ SET(VERSION_MINOR "0")
 SET(VERSION_PATCH "0")
 SET(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-add_executable(${PROJECT_NAME}
-    "main.c"
-    "libcurl/include/curl/curl.h"
-    "libcurl/include/curl/curlver.h"
-    "libcurl/include/curl/easy.h"
-    "libcurl/include/curl/mprintf.h"
-    "libcurl/include/curl/multi.h"
-    "libcurl/include/curl/stdcheaders.h"
-    "libcurl/include/curl/system.h"
-    "libcurl/include/curl/typecheck-gcc.h")
+set(SOURCE_FILES main.c)
 
-INCLUDE_DIRECTORIES(${PROJECT_NAME}
-    "libcurl/lib"
-    "libcurl/include/curl"
-    "libcurl/bin")
+include_directories(${CMAKE_SOURCE_DIR}/libcurl/include/curl)
 
-LINK_DIRECTORIES(${PROJECT_NAME} "libcurl/lib")
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} "libcurl/bin")
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 
+if(WIN32)
+    add_definitions(-DCURL_STATICLIB)
+    target_link_libraries(ArkInC ${CMAKE_SOURCE_DIR}/libcurl/lib/libcurl_a.lib)
+endif()
