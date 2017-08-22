@@ -1,7 +1,6 @@
 ﻿#include <stdio.h>
-
 #include <curl.h>
-#include <easy.h>
+#include "cJSON.h"
 
 int main()
 {
@@ -24,5 +23,6 @@ int main()
         /* always cleanup */
         curl_easy_cleanup(curl);
     }
+
     return 0;
 }

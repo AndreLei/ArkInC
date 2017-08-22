@@ -6,7 +6,9 @@ SET(VERSION_MINOR "0")
 SET(VERSION_PATCH "0")
 SET(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-set(SOURCE_FILES main.c)
+set(SOURCE_FILES main.c
+    cJSON.h
+    cJSON.c)
 
 include_directories(${CMAKE_SOURCE_DIR}/libcurl/include/curl)
 
