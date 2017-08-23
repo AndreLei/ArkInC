@@ -24,6 +24,11 @@ typedef struct {
 } ArkFee;
 
 typedef struct {
+    char* id;
+    int height;
+} ArkBlockHeight;
+
+typedef struct {
     char* username;
     char* address;
     char* publicKey;

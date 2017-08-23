@@ -246,6 +246,16 @@ int main()
     ArkPeer arkpeer = ark_api_peers_get(randomPeer, 4002, "164.8.251.179");
 
     /// api/blocks/getEpoch TEST
+    char* epoch = ark_api_blocks_getEpoch(peers[0]);
+
+    /// api/blocks/getHeight TEST
+    ArkBlockHeight arkblockheight = ark_api_blocks_getHeight(peers[0]);
+
+    /// api/blocks/getFee TEST
+    int arkfee = ark_api_blocks_getFee(peers[0]);
+
+    /// api/blocks/getNethash TEST
+    char* netHash = ark_api_blocks_getNethash(peers[0]);
     //time_t epoch = ark_api_blocks_getEpoch(randomPeer);
 
     /// get Delegates from one Peer

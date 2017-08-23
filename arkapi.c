@@ -6,10 +6,10 @@ ARKPEERSTATUS getArkPeerStatus(const char* string)
         const char *s;
         ARKPEERSTATUS e;
     } map[] = {
-        { "OK", OK },
-        { "EUNAVAILABLE", EUNAVAILABLE },
-        { "ETIMEOUT", ETIMEOUT },
-    };
+    { "OK", OK },
+    { "EUNAVAILABLE", EUNAVAILABLE },
+    { "ETIMEOUT", ETIMEOUT },
+};
 
     ARKPEERSTATUS result = OK;
 
@@ -165,9 +165,108 @@ ArkPeer ark_api_peers_get(ArkPeer peer, int port, char *ip)
     return arkpeer;
 }
 
-time_t ark_api_blocks_getEpoch(ArkPeer peer)
+char* ark_api_blocks_getEpoch(ArkPeer peer)
 {
-    return NULL;
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getEpoch", peer.ip, peer.port);
+
+    RestResponse *ars = ark_api_get(url);
+
+    if (ars->data == NULL)
+        return NULL;
+
+    cJSON *root = cJSON_Parse(ars->data);
+    int success = cJSON_GetObjectItem(root, "success")->valueint;
+
+    char* time = "";
+    if(success == 1)
+    {
+        time = cJSON_GetObjectItem(root, "epoch")->valuestring;
+    }
+
+    free(root);
+    ars = NULL;
+
+    return time;
+}
+
+ArkBlockHeight ark_api_blocks_getHeight(ArkPeer peer)
+{
+    ArkBlockHeight arkblockheight;
+    char url[255];
+
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getHeight", peer.ip, peer.port);
+
+    RestResponse *ars = ark_api_get(url);
+
+    if (ars->data == NULL)
+        return arkblockheight;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    int success = cJSON_GetObjectItem(root, "success")->valueint;
+    if(success == 1)
+    {
+        arkblockheight.id = cJSON_GetObjectItem(root, "id")->valuestring;
+        arkblockheight.height = cJSON_GetObjectItem(root, "height")->valueint;
+    }
+
+    free(root);
+    ars = NULL;
+
+    return arkblockheight;
+}
+
+int ark_api_blocks_getFee(ArkPeer peer)
+{
+    int fee = -1;
+    char url[255];
+
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getFee", peer.ip, peer.port);
+
+    RestResponse *ars = ark_api_get(url);
+
+    if (ars->data == NULL)
+        return fee;
+
+    cJSON *root = cJSON_Parse(ars->data);
+    int success = cJSON_GetObjectItem(root, "success")->valueint;
+
+    if(success == 1)
+    {
+        fee = cJSON_GetObjectItem(root, "fee")->valueint;
+    }
+
+    free(root);
+    ars = NULL;
+
+    return fee;
+}
+
+char *ark_api_blocks_getNethash(ArkPeer peer)
+{
+    char* nethash = "";
+    char url[255];
+
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getNethash", peer.ip, peer.port);
+
+    RestResponse *ars = ark_api_get(url);
+
+    if (ars->data == NULL)
+        return nethash;
+
+    cJSON *root = cJSON_Parse(ars->data);
+    int success = cJSON_GetObjectItem(root, "success")->valueint;
+
+    if(success == 1)
+    {
+        nethash = cJSON_GetObjectItem(root, "nethash")->valuestring;
+    }
+
+    free(root);
+    ars = NULL;
+
+    return nethash;
 }
 
 ArkDelegate* ark_api_get_delegates(char* serverIp, int serverPort)

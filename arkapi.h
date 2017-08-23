@@ -1,4 +1,5 @@
 ﻿#include <stdio.h>
+#include <time.h>
 
 #include "jsonresponse.h"
 #include "arkmodels.h"
@@ -18,7 +19,14 @@ ArkFee ark_api_get_fee(char *peerIp, int peerPort);
 
 ArkPeer ark_api_peers_get(ArkPeer peer, int port, char *ip);
 
-time_t ark_api_blocks_getEpoch(ArkPeer peer);
+char* ark_api_blocks_getEpoch(ArkPeer peer);
+
+ArkBlockHeight ark_api_blocks_getHeight(ArkPeer peer);
+
+int ark_api_blocks_getFee(ArkPeer peer);
+
+char *ark_api_blocks_getNethash(ArkPeer peer);
+
 
 ArkDelegate* ark_api_get_delegates(char* serverIp, int serverPort);
 
