@@ -25,7 +25,7 @@ ARKPEERSTATUS getArkPeerStatus(const char* string)
     return result;
 }
 
-ArkPeer getArkPeer(const cJSON *const json)
+ArkPeer ark_helpers_get_ArkPeer(const cJSON *const json)
 {
     ArkPeer peer;
     peer.ip = cJSON_GetObjectItem(json, "ip")->valuestring;
@@ -38,7 +38,7 @@ ArkPeer getArkPeer(const cJSON *const json)
     return peer;
 }
 
-ArkDelegate getArkDelegate(const cJSON *const json)
+ArkDelegate ark_helpers_get_ArkDelegate(const cJSON *const json)
 {
     ArkDelegate delegate;
     delegate.username = cJSON_GetObjectItem(json, "username")->valuestring;
@@ -52,6 +52,17 @@ ArkDelegate getArkDelegate(const cJSON *const json)
     delegate.productivity = cJSON_GetObjectItem(json, "productivity")->valuedouble;
 
     return delegate;
+}
+
+ArkVoter ark_helpers_get_ArkVoter(const cJSON *const json)
+{
+    ArkVoter voter;
+    voter.username = cJSON_GetObjectItem(json, "username")->valuestring;
+    voter.address = cJSON_GetObjectItem(json, "address")->valuestring;
+    voter.publicKey = cJSON_GetObjectItem(json, "publicKey")->valuestring;
+    voter.balance = (long)(cJSON_GetObjectItem(json, "balance")->valuedouble + 0.5);
+
+    return voter;
 }
 
 ArkPeer* ark_api_get_peers(char* serverIp, int serverPort)
@@ -78,7 +89,7 @@ ArkPeer* ark_api_get_peers(char* serverIp, int serverPort)
     {
         cJSON *peerJson = cJSON_GetArrayItem(peers, i);
 
-        data[i] = getArkPeer(peerJson);
+        data[i] = ark_helpers_get_ArkPeer(peerJson);
     }
 
     free(peers);
@@ -137,7 +148,7 @@ ArkPeer ark_api_peers_get(ArkPeer peer, int port, char *ip)
 
     if(success == 1)
     {
-        arkpeer = getArkPeer(peerJson);
+        arkpeer = ark_helpers_get_ArkPeer(peerJson);
         /*arkpeer.ip = cJSON_GetObjectItem(peerJson, "ip")->valuestring;
         arkpeer.port = cJSON_GetObjectItem(peerJson, "port")->valueint;
         arkpeer.height = cJSON_GetObjectItem(peerJson, "height")->valueint;
@@ -282,7 +293,7 @@ ArkDelegate* ark_api_get_delegates(char* serverIp, int serverPort)
     {
         cJSON *delegateJson = cJSON_GetArrayItem(delegates, i);
 
-        data[i] = getArkDelegate(delegateJson);
+        data[i] = ark_helpers_get_ArkDelegate(delegateJson);
     }
 
     free(delegates);
@@ -308,7 +319,7 @@ ArkDelegate ark_api_get_delegate_by_username(char* serverIp, int serverPort, cha
     cJSON *root = cJSON_Parse(ars->data);
     cJSON *delegateJson = cJSON_GetObjectItem(root, "delegate");
 
-    delegate = getArkDelegate(delegateJson);
+    delegate = ark_helpers_get_ArkDelegate(delegateJson);
 
     free(delegateJson);
     free(root);
@@ -341,4 +352,38 @@ int ark_blocks_getMilestone(char *ip, int port)
     ars = NULL;
 
     return milestone;
+}
+
+ArkVoter* ark_api_get_delegate_voters(char* serverIp, int serverPort, char* publicKey)
+{
+    printf("Getting delegate voters: [ServerIP = %s, ServerPort: = %d, PublicKey = %s]\n", serverIp, serverPort, publicKey);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/delegates/voters?publicKey=", serverIp, serverPort, publicKey);
+
+    RestResponse *ars = ark_api_get(url);
+
+    if (ars->data == NULL)
+        return NULL;
+
+    cJSON *root = cJSON_Parse(ars->data);
+    cJSON *voters = cJSON_GetObjectItem(root, "accounts");
+    int total = cJSON_GetArraySize(voters);
+
+    ArkVoter *data = malloc(total * sizeof(ArkVoter));
+    if (!data)
+        return NULL;
+
+    for (int i = 0; i < total; i++)
+    {
+        cJSON *voterJson = cJSON_GetArrayItem(voters, i);
+
+        data[i] = ark_helpers_get_ArkVoter(voterJson);
+    }
+
+    free(voters);
+    free(root);
+    ars = NULL;
+
+    return data;
 }

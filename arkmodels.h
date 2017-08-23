@@ -40,6 +40,13 @@ typedef struct {
     double productivity;
 } ArkDelegate;
 
+typedef struct {
+    char* username;
+    char* address;
+    char* publicKey;
+    long balance;
+} ArkVoter;
+
 ///CONSTANTS
 
 static const char* SeedArray[] =
