@@ -258,6 +258,8 @@ int main()
     /// api/blocks/getNethash TEST
     char* netHash = ark_api_blocks_getNethash(peers[0]);
     //time_t epoch = ark_api_blocks_getEpoch(randomPeer);
+    /// api/blocks/getMilestone
+    //int milestone =
 
     /// get Delegates from one Peer
     ArkDelegate *delegates;

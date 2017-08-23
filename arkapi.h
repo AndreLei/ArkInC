@@ -25,6 +25,9 @@ int ark_api_blocks_getFee(ArkPeer peer);
 
 char *ark_api_blocks_getNethash(ArkPeer peer);
 
+int ark_blocks_getMilestone(char* ip, int port);
+
+
 
 ArkDelegate* ark_api_get_delegates(char* serverIp, int serverPort);
 

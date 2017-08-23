@@ -316,3 +316,29 @@ ArkDelegate ark_api_get_delegate_by_username(char* serverIp, int serverPort, cha
 
     return delegate;
 }
+
+int ark_blocks_getMilestone(char *ip, int port)
+{
+    int milestone = -1;
+    char url[255];
+
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getMilestone", ip, port);
+
+    RestResponse *ars = ark_api_get(url);
+
+    if (ars->data == NULL)
+        return milestone;
+
+    cJSON *root = cJSON_Parse(ars->data);
+    int success = cJSON_GetObjectItem(root, "success")->valueint;
+
+    if(success == 1)
+    {
+        milestone = cJSON_GetObjectItem(root, "milestone")->valueint;
+    }
+
+    free(root);
+    ars = NULL;
+
+    return milestone;
+}
