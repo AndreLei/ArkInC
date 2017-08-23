@@ -238,16 +238,19 @@ int main()
 
     ArkPeer *peers;
     peers = ark_api_get_peers("164.8.251.179:4002/api/peers");
-    printf("Found %d peers\n", sizeof(peers));
 
     //ArkFee *fee;
     //fee = ark_api_get_fee(peers[10]);
 
     /// api/peers/get TEST
-    ArkPeer* arkpeer = ark_api_peers_get(peers[0], 4002, "164.8.251.179");
+    ArkPeer arkpeer = ark_api_peers_get(peers[0], 4002, "164.8.251.179");
 
     /// api/blocks/getEpoch TEST
     time_t epoch = ark_api_blocks_getEpoch(peers[0]);
+
+    int ii = sizeof(peers)/(sizeof(ArkPeer*));
+    printf("Found %d peers\n", ii);
+    ArkFee fee = ark_api_get_fee(peers[0]);
 
     return 0;
 }
