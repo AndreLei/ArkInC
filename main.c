@@ -236,21 +236,24 @@ int main()
     CURLcode res;
     */
 
-    ArkPeer *peers;
-    peers = ark_api_get_peers("164.8.251.179", 4002);
+    ArkPeer *peers = ark_api_get_peers("164.8.251.179", 4002);
 
-    //ArkFee *fee;
-    //fee = ark_api_get_fee(peers[10]);
+    ArkPeer randomPeer = peers[0];
+
+    /// get one Peer fees
+    ArkFee fee = ark_api_get_fee(randomPeer.ip, randomPeer.port);
 
     /// api/peers/get TEST
-    ArkPeer arkpeer = ark_api_peers_get(peers[0], 4002, "164.8.251.179");
+    ArkPeer arkpeer = ark_api_peers_get(randomPeer, 4002, "164.8.251.179");
 
     /// api/blocks/getEpoch TEST
-    time_t epoch = ark_api_blocks_getEpoch(peers[0]);
+    //time_t epoch = ark_api_blocks_getEpoch(randomPeer);
 
-    int ii = sizeof(peers)/(sizeof(ArkPeer*));
-    printf("Found %d peers\n", ii);
-    ArkFee fee = ark_api_get_fee(peers[0]);
+    /// get Delegates from one Peer
+    ArkDelegate *delegates;
+    delegates = ark_api_get_delegates(randomPeer.ip, randomPeer.port);
+
+    peers = NULL;
 
     return 0;
 }

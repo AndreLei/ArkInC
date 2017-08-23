@@ -23,6 +23,18 @@ typedef struct {
     long multiSignature;
 } ArkFee;
 
+typedef struct {
+    char* username;
+    char* address;
+    char* publicKey;
+    char* vote;
+    long producedBlocks;
+    long missedBlocks;
+    int rate;
+    double approval;
+    double productivity;
+} ArkDelegate;
+
 ///CONSTANTS
 
 static const char* SeedArray[] =
