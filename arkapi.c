@@ -88,3 +88,44 @@ ArkFee* ark_api_get_fee(ArkPeer peer)
 
     return fee;
 }
+
+ArkPeer* ark_api_peers_get(ArkPeer peer, int port, char *ip)
+{
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/peers/get?port=%d&ip=%s", peer.ip, peer.port, port, ip);
+
+    RestResponse *ars = ark_api_get(url);
+
+    if (ars->data == NULL)
+        return NULL;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    int success = cJSON_GetObjectItem(root, "success")->valueint;
+
+    ArkPeer* arkpeer = (ArkFee*) malloc(sizeof *arkpeer);
+    cJSON *peerJson = cJSON_GetObjectItem(root, "peer");
+
+    if(success == 1)
+    {
+        arkpeer->ip = cJSON_GetObjectItem(peerJson, "ip")->valuestring;
+        arkpeer->port = cJSON_GetObjectItem(peerJson, "port")->valueint;
+        arkpeer->height = cJSON_GetObjectItem(peerJson, "height")->valueint;
+        arkpeer->version = cJSON_GetObjectItem(peerJson, "version")->valuestring;
+        arkpeer->os = cJSON_GetObjectItem(peerJson, "os")->valuestring;
+        arkpeer->status = getArkPeerStatus(cJSON_GetObjectItem(peerJson, "status")->valuestring);
+        arkpeer->delay = cJSON_GetObjectItem(peerJson, "delay")->valueint;
+    }
+    else arkpeer = NULL;
+
+    free(peerJson);
+    free(root);
+    ars = NULL;
+
+    return arkpeer;
+}
+
+time_t ark_api_blocks_getEpoch(ArkPeer peer)
+{
+    return NULL;
+}

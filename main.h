@@ -1,8 +1,12 @@
 ﻿#include "arkapi.h"
 #include "curl.h"
 #include "cJSON.h"
+#include "arkmodels.h"
 
 #include <stdio.h>
+
+//ARKNETWORKTYPE _networkType = DEVELOPMENT;
+
 
 /* Used by some code below as an example datatype. */
 struct record
