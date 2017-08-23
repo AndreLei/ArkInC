@@ -238,10 +238,11 @@ int main()
 
     ArkPeer *peers;
     peers = ark_api_get_peers("164.8.251.179:4002/api/peers");
-    printf("Found %d peers\n", sizeof(peers));
 
-    ArkFee *fee;
-    fee = ark_api_get_fee(peers[10]);
+    int ii = sizeof(peers)/(sizeof(ArkPeer*));
+    printf("Found %d peers\n", ii);
+
+    ArkFee *fee = ark_api_get_fee(peers[0]);
 
     return 0;
 }
