@@ -237,7 +237,7 @@ int main()
     */
 
     ArkPeer *peers;
-    peers = ark_api_get_peers("164.8.251.179:4002/api/peers");
+    peers = ark_api_get_peers("164.8.251.179", 4002);
 
     int ii = sizeof(peers)/(sizeof(ArkPeer*));
     printf("Found %d peers\n", ii);

@@ -25,9 +25,12 @@ ARKPEERSTATUS getArkPeerStatus(const char* string)
     return result;
 }
 
-ArkPeer* ark_api_get_peers(const char *url)
+ArkPeer* ark_api_get_peers(char* serverIp, int serverPort)
 {
-    printf("Getting peers: [Url = %s]\n", url);
+    printf("Getting peers: [ServerIP = %s, ServerPort: = %d]\n", serverIp, serverPort);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/peers", serverIp, serverPort);
 
     RestResponse *ars = ark_api_get(url);
 
