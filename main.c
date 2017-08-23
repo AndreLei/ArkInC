@@ -246,7 +246,16 @@ int main()
     ArkPeer arkpeer = ark_api_peers_get(peers[0], 4002, "164.8.251.179");
 
     /// api/blocks/getEpoch TEST
-    time_t epoch = ark_api_blocks_getEpoch(peers[0]);
+    char* epoch = ark_api_blocks_getEpoch(peers[0]);
+
+    /// api/blocks/getHeight TEST
+    ArkBlockHeight arkblockheight = ark_api_blocks_getHeight(peers[0]);
+
+    /// api/blocks/getFee TEST
+    int arkfee = ark_api_blocks_getFee(peers[0]);
+
+    /// api/blocks/getNethash TEST
+    char* netHash = ark_api_blocks_getNethash(peers[0]);
 
     int ii = sizeof(peers)/(sizeof(ArkPeer*));
     printf("Found %d peers\n", ii);
