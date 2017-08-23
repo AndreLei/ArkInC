@@ -38,6 +38,22 @@ ArkPeer getArkPeer(const cJSON *const json)
     return peer;
 }
 
+ArkDelegate getArkDelegate(const cJSON *const json)
+{
+    ArkDelegate delegate;
+    delegate.username = cJSON_GetObjectItem(json, "username")->valuestring;
+    delegate.address = cJSON_GetObjectItem(json, "address")->valuestring;
+    delegate.publicKey = cJSON_GetObjectItem(json, "publicKey")->valuestring;
+    delegate.vote = cJSON_GetObjectItem(json, "vote")->valuestring;
+    delegate.producedBlocks = (long)(cJSON_GetObjectItem(json, "producedblocks")->valuedouble + 0.5);
+    delegate.missedBlocks = (long)(cJSON_GetObjectItem(json, "missedblocks")->valuedouble + 0.5);
+    delegate.rate = cJSON_GetObjectItem(json, "rate")->valueint;
+    delegate.approval = cJSON_GetObjectItem(json, "approval")->valuedouble;
+    delegate.productivity = cJSON_GetObjectItem(json, "productivity")->valuedouble;
+
+    return delegate;
+}
+
 ArkPeer* ark_api_get_peers(char* serverIp, int serverPort)
 {
     printf("Getting peers: [ServerIP = %s, ServerPort: = %d]\n", serverIp, serverPort);
@@ -167,18 +183,7 @@ ArkDelegate* ark_api_get_delegates(char* serverIp, int serverPort)
     {
         cJSON *delegateJson = cJSON_GetArrayItem(delegates, i);
 
-        ArkDelegate delegate;
-        delegate.username = cJSON_GetObjectItem(delegateJson, "username")->valuestring;
-        delegate.address = cJSON_GetObjectItem(delegateJson, "address")->valuestring;
-        delegate.publicKey = cJSON_GetObjectItem(delegateJson, "publicKey")->valuestring;
-        delegate.vote = cJSON_GetObjectItem(delegateJson, "vote")->valuestring;
-        delegate.producedBlocks = (long)(cJSON_GetObjectItem(delegateJson, "producedblocks")->valuedouble + 0.5);
-        delegate.missedBlocks = (long)(cJSON_GetObjectItem(delegateJson, "missedblocks")->valuedouble + 0.5);
-        delegate.rate = cJSON_GetObjectItem(delegateJson, "rate")->valueint;
-        delegate.approval = cJSON_GetObjectItem(delegateJson, "approval")->valuedouble;
-        delegate.productivity = cJSON_GetObjectItem(delegateJson, "productivity")->valuedouble;
-
-        data[i] = delegate;
+        data[i] = getArkDelegate(delegateJson);
     }
 
     free(delegates);
@@ -186,4 +191,29 @@ ArkDelegate* ark_api_get_delegates(char* serverIp, int serverPort)
     ars = NULL;
 
     return data;
+}
+
+ArkDelegate ark_api_get_delegate_by_username(char* serverIp, int serverPort, char* username)
+{
+    printf("Getting delegate by username: [ServerIP = %s, ServerPort: = %d, Username = %s]\n", serverIp, serverPort, username);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/delegates/get?username=%s", serverIp, serverPort, username);
+
+    ArkDelegate delegate;
+    RestResponse *ars = ark_api_get(url);
+
+    if (ars->data == NULL)
+        return delegate;
+
+    cJSON *root = cJSON_Parse(ars->data);
+    cJSON *delegateJson = cJSON_GetObjectItem(root, "delegate");
+
+    delegate = getArkDelegate(delegateJson);
+
+    free(delegateJson);
+    free(root);
+    ars = NULL;
+
+    return delegate;
 }

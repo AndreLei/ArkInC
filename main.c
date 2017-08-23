@@ -253,7 +253,11 @@ int main()
     ArkDelegate *delegates;
     delegates = ark_api_get_delegates(randomPeer.ip, randomPeer.port);
 
+    /// get one Delegate by username
+    ArkDelegate delegate = ark_api_get_delegate_by_username(randomPeer.ip, randomPeer.port, "darkjarunik");
+
     peers = NULL;
+    delegates = NULL;
 
     return 0;
 }
