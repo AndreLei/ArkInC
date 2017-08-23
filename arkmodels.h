@@ -1,11 +1,4 @@
-#include <stdio.h>
-
-typedef struct {
-    char *data;
-    size_t size;
-} ArkRestResponse;
-
-typedef enum { OK, EUNAVAILABLE, ETIMEOUT } ARKPEERSTATUS;
+﻿typedef enum { OK, EUNAVAILABLE, ETIMEOUT } ARKPEERSTATUS;
 
 typedef struct {
     char* ip;

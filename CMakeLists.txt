@@ -12,6 +12,8 @@ set(SOURCE_FILES
     arkmodels.h
     cJSON.h
     cJSON.c
+    jsonresponse.h
+    jsonresponse.c
     main.h
     main.c)
 
