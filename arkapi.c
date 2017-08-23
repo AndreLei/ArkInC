@@ -27,6 +27,8 @@ ARKPEERSTATUS getArkPeerStatus(const char* string)
 
 ArkPeer* ark_api_get_peers(const char *url)
 {
+    printf("Getting peers: [Url = %s]\n", url);
+
     RestResponse *ars = ark_api_get(url);
 
     if (ars->data == NULL)
@@ -62,27 +64,27 @@ ArkPeer* ark_api_get_peers(const char *url)
     return data;
 }
 
-ArkFee* ark_api_get_fee(ArkPeer peer)
+ArkFee ark_api_get_fee(ArkPeer peer)
 {
+    printf("Getting fees for a peer: [ip = %s, Port = %d]\n", peer.ip, peer.port);
+
     char url[255];
     snprintf(url, sizeof url, "%s:%d/api/blocks/getfees", peer.ip, peer.port);
 
+    ArkFee fee;
     RestResponse *ars = ark_api_get(url);
 
     if (ars->data == NULL)
-        return NULL;
+        return fee;
 
     cJSON *root = cJSON_Parse(ars->data);
     cJSON *feeJson = cJSON_GetObjectItem(root, "fees");
 
-    ArkFee *fee;
-    fee = (ArkFee*) malloc(sizeof *fee);
-
-    fee->send = (long)(cJSON_GetObjectItem(feeJson, "send")->valuedouble + 0.5);
-    fee->vote = (long)(cJSON_GetObjectItem(feeJson, "vote")->valuedouble + 0.5);
-    fee->secondSignature = (long)(cJSON_GetObjectItem(feeJson, "secondsignature")->valuedouble + 0.5);
-    fee->delegate = (long)(cJSON_GetObjectItem(feeJson, "delegate")->valuedouble + 0.5);
-    fee->multiSignature = (long)(cJSON_GetObjectItem(feeJson, "multisignature")->valuedouble + 0.5);
+    fee.send = (long)(cJSON_GetObjectItem(feeJson, "send")->valuedouble + 0.5);
+    fee.vote = (long)(cJSON_GetObjectItem(feeJson, "vote")->valuedouble + 0.5);
+    fee.secondSignature = (long)(cJSON_GetObjectItem(feeJson, "secondsignature")->valuedouble + 0.5);
+    fee.delegate = (long)(cJSON_GetObjectItem(feeJson, "delegate")->valuedouble + 0.5);
+    fee.multiSignature = (long)(cJSON_GetObjectItem(feeJson, "multisignature")->valuedouble + 0.5);
 
     free(feeJson);
     free(root);

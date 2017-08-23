@@ -242,7 +242,7 @@ int main()
     int ii = sizeof(peers)/(sizeof(ArkPeer*));
     printf("Found %d peers\n", ii);
 
-    ArkFee *fee = ark_api_get_fee(peers[0]);
+    ArkFee fee = ark_api_get_fee(peers[0]);
 
     return 0;
 }
