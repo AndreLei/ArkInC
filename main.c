@@ -237,7 +237,6 @@ int main()
     */
 
     ArkPeer *peers = ark_api_get_peers("164.8.251.179", 4002);
-
     ArkPeer randomPeer = peers[0];
 
     /// get one Peer fees
@@ -253,11 +252,18 @@ int main()
     ArkDelegate *delegates;
     delegates = ark_api_get_delegates(randomPeer.ip, randomPeer.port);
 
+    ArkDelegate randomDelegate = delegates[0];
+
     /// get one Delegate by username
     ArkDelegate delegate = ark_api_get_delegate_by_username(randomPeer.ip, randomPeer.port, "darkjarunik");
 
+    /// get Voters from one Delegate by publicKey
+    ArkVoter *voters;
+    voters = ark_api_get_delegate_voters(randomPeer.ip, randomPeer.port, randomDelegate.publicKey);
+
     peers = NULL;
     delegates = NULL;
+    voters = NULL;
 
     return 0;
 }
