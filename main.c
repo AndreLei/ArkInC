@@ -224,34 +224,24 @@ static int sum(int a){
 
 int main()
 {
+    /*
     printf("sum = %d", sum(5));
-
-
-    /* print the version */
+    // print the version
         printf("Version: %s\n", cJSON_Version());
 
-        /* Now some samplecode for building objects concisely: */
+        // Now some samplecode for building objects concisely:
     create_objects();
 
     CURL *curl;
     CURLcode res;
+    */
 
-    curl = curl_easy_init();
-    if(curl) {
-        curl_easy_setopt(curl, CURLOPT_URL, "http://example.com");
-        /* example.com is redirected, so we tell libcurl to follow redirection */
-        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    ArkPeer *peers;
+    peers = ark_api_get_peers("164.8.251.179:4002/api/peers");
+    printf("Found %d peers\n", sizeof(peers));
 
-        /* Perform the request, res will get the return code */
-        res = curl_easy_perform(curl);
-        /* Check for errors */
-        if(res != CURLE_OK)
-            fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                    curl_easy_strerror(res));
-
-        /* always cleanup */
-        curl_easy_cleanup(curl);
-    }
+    ArkFee *fee;
+    fee = ark_api_get_fee(peers[10]);
 
     return 0;
 }

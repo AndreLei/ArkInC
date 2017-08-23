@@ -1,6 +1,8 @@
-﻿#include <stdio.h>
-#include <curl.h>
+﻿#include "arkapi.h"
+#include "curl.h"
 #include "cJSON.h"
+
+#include <stdio.h>
 
 /* Used by some code below as an example datatype. */
 struct record
