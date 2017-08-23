@@ -2,8 +2,6 @@
 
 Ark API written in C.
 
-One Paragraph of project description goes here
-
 ## Getting Started
 
 Soon...
