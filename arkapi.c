@@ -65,17 +65,81 @@ ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json)
     return voter;
 }
 
-void ark_global_setEnvrionment(ARKNETWORKTYPE networkType)
+int ark_helpers_isNull(ArkNetwork network)
 {
-    global_networkType = networkType;
-    printf("[ARK] Setting NetworkType to '%s'\n", networkType);
+    return (network.explorer == NULL &&
+            network.netHash == NULL &&
+            network.symbol == NULL &&
+            network.token == NULL &&
+            network.version == 0)
+            ? 1 : 0;
 }
 
+int ark_global_setEnvrionment(ARKNETWORKTYPE networkType)
+{
+    global_networkType = networkType;
+    printf("[ARK] Setting NetworkType to '%d'\n", networkType);
 
+    ArkNetwork peerNetworkConfiguration = {0};
+    ArkPeer randomPeer = {0};
+
+    int success = 1;
+    int iterations = 5;
+    while (iterations > 0 && success == 1)
+    {
+        randomPeer = ark_helpers_get_randomPeer();
+        peerNetworkConfiguration = ark_api_get_network(randomPeer.ip, randomPeer.port);
+        success = ark_helpers_isNull(peerNetworkConfiguration);
+
+        iterations--;
+    }
+
+    if (success == 0)
+    {
+        global_network = peerNetworkConfiguration;
+        global_selectedPeer = ark_api_peers_get(randomPeer, randomPeer.port, randomPeer.ip);
+        global_selectedPeerFee = ark_api_get_fee(global_selectedPeer.ip, global_selectedPeer.port);
+    }
+
+    return success;
+}
+
+ArkNetwork ark_api_get_network(char *ip, int port)
+{
+    printf("[ARK] Getting network configuration for a peer: [IP = %s, Port = %d]\n", ip, port);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/loader/autoconfigure", ip, port);
+
+    ArkNetwork network = {0};
+    RestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return network;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
+        return network;
+
+    cJSON *networkJson = cJSON_GetObjectItem(root, "network");
+
+    network.netHash = cJSON_GetObjectItem(networkJson, "nethash")->valuestring;
+    network.token = cJSON_GetObjectItem(networkJson, "token")->valuestring;
+    network.symbol = cJSON_GetObjectItem(networkJson, "symbol")->valuestring;
+    network.explorer = cJSON_GetObjectItem(networkJson, "explorer")->valuestring;
+    network.version = cJSON_GetObjectItem(networkJson, "version")->valueint;
+
+    free(networkJson);
+    free(root);
+    ars = NULL;
+
+    return network;
+}
 
 ArkPeer ark_helpers_get_randomPeer()
 {
-    ArkPeer peer;
+    ArkPeer peer = {0};
 
     int peerCount = 0;
 
@@ -160,10 +224,10 @@ ArkFee ark_api_get_fee(char* ip, int port)
     char url[255];
     snprintf(url, sizeof url, "%s:%d/api/blocks/getfees", ip, port);
 
-    ArkFee fee;
+    ArkFee fee = {0};
     RestResponse *ars = ark_api_get(url);
 
-    if (ars->data == NULL)
+    if (ars->size == 0 || ars->data == NULL)
         return fee;
 
     cJSON *root = cJSON_Parse(ars->data);
@@ -188,14 +252,13 @@ ArkFee ark_api_get_fee(char* ip, int port)
 
 ArkPeer ark_api_peers_get(ArkPeer peer, int port, char *ip)
 {
-    ArkPeer arkpeer;
     char url[255];
-
     snprintf(url, sizeof url, "%s:%d/api/peers/get?port=%d&ip=%s", peer.ip, peer.port, port, ip);
 
+    ArkPeer arkpeer = {0};
     RestResponse *ars = ark_api_get(url);
 
-    if (ars->data == NULL)
+    if (ars->size == 0 || ars->data == NULL)
         return arkpeer;
 
     cJSON *root = cJSON_Parse(ars->data);

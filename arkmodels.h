@@ -47,6 +47,14 @@ typedef struct {
     long balance;
 } ArkVoter;
 
+typedef struct {
+    char* netHash;
+    char* token;
+    char* symbol;
+    char* explorer;
+    int version;
+} ArkNetwork;
+
 ///CONSTANTS
 
 static const char* SeedArray[] =

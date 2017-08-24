@@ -8,6 +8,10 @@
 #include "cJSON.h"
 
 ARKNETWORKTYPE global_networkType;
+ArkNetwork global_network;
+ArkPeer* global_filteredPeers;
+ArkPeer global_selectedPeer;
+ArkFee global_selectedPeerFee;
 
 ARKPEERSTATUS getArkPeerStatus(const char* string);
 
@@ -17,7 +21,11 @@ ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json);
 
 ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json);
 
-void ark_global_setEnvrionment(ARKNETWORKTYPE networkType);
+int ark_helpers_isNull(ArkNetwork network);
+
+int ark_global_setEnvrionment(ARKNETWORKTYPE networkType);
+
+ArkNetwork ark_api_get_network(char *ip, int port);
 
 ArkPeer ark_helpers_get_randomPeer();
 
