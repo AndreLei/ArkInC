@@ -17,6 +17,8 @@ ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json);
 
 ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json);
 
+void ark_global_setEnvrionment(ARKNETWORKTYPE networkType);
+
 ArkPeer ark_helpers_get_randomPeer();
 
 ArkPeer* ark_api_get_peers(char *ip, int port);

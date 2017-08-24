@@ -65,6 +65,14 @@ ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json)
     return voter;
 }
 
+void ark_global_setEnvrionment(ARKNETWORKTYPE networkType)
+{
+    global_networkType = networkType;
+    printf("[ARK] Setting NetworkType to '%s'\n", networkType);
+}
+
+
+
 ArkPeer ark_helpers_get_randomPeer()
 {
     ArkPeer peer;

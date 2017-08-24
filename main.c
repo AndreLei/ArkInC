@@ -236,7 +236,8 @@ int main()
     CURLcode res;
     */
 
-    global_networkType = DEVELOPMENT;
+    ark_global_setEnvrionment(DEVELOPMENT);
+
     ArkPeer initPeer = ark_helpers_get_randomPeer();
 
     ArkPeer *peers = ark_api_get_peers(initPeer.ip, initPeer.port);
