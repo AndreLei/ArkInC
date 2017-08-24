@@ -245,8 +245,8 @@ int main()
 
     ArkPeer initPeer = ark_helpers_get_randomPeer();
 
-    ArkPeer *peers = ark_api_get_peers(initPeer.ip, initPeer.port);
-    ArkPeer randomPeer = peers[0];
+    ArkPeerArray peers = ark_api_get_peers(initPeer.ip, initPeer.port);
+    ArkPeer randomPeer = peers.data[0];
 
     /// get one Peer fees
     ArkFee fee = ark_api_get_fee(randomPeer.ip, randomPeer.port);
@@ -282,7 +282,6 @@ int main()
     ArkVoter *voters;
     voters = ark_api_get_delegate_voters(randomPeer.ip, randomPeer.port, randomDelegate.publicKey);
 
-    peers = NULL;
     delegates = NULL;
     voters = NULL;
 

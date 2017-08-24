@@ -1,5 +1,9 @@
 ﻿#include "arkapi.h"
 
+/// --------------------
+/// ARK HELPERS
+/// --------------------
+
 ARKPEERSTATUS getArkPeerStatus(const char* string)
 {
     static struct {
@@ -65,6 +69,10 @@ ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json)
     return voter;
 }
 
+/// --------------------
+/// PRIVATE ARK GLOBAL FUNCTIONS
+/// --------------------
+
 int ark_helpers_isNull(ArkNetwork network)
 {
     return (network.explorer == NULL &&
@@ -77,8 +85,8 @@ int ark_helpers_isNull(ArkNetwork network)
 
 int ark_global_setEnvrionment(ARKNETWORKTYPE networkType)
 {
-    global_networkType = networkType;
     printf("[ARK] Setting NetworkType to '%d'\n", networkType);
+    global_networkType = networkType;
 
     ArkNetwork peerNetworkConfiguration = {0};
     ArkPeer randomPeer = {0};
@@ -99,10 +107,28 @@ int ark_global_setEnvrionment(ARKNETWORKTYPE networkType)
         global_network = peerNetworkConfiguration;
         global_selectedPeer = ark_api_peers_get(randomPeer, randomPeer.port, randomPeer.ip);
         global_selectedPeerFee = ark_api_get_fee(global_selectedPeer.ip, global_selectedPeer.port);
+
+        ark_global_filterPeers();
     }
 
     return success;
 }
+
+int ark_global_filterPeers()
+{
+    printf("[ARK] Filtering peers...\n");
+
+    ArkPeerArray allPeers = ark_api_get_peers(global_selectedPeer.ip, global_selectedPeer.port);
+
+    int x = allPeers.length;
+    printf("Found %d peers\n", x);
+
+    return 0;
+}
+
+/// --------------------
+/// PUBLIC ARK FUNCTIONS
+/// --------------------
 
 ArkNetwork ark_api_get_network(char *ip, int port)
 {
@@ -179,29 +205,30 @@ ArkPeer ark_helpers_get_randomPeer()
     return peer;
 }
 
-ArkPeer* ark_api_get_peers(char* ip, int port)
+ArkPeerArray ark_api_get_peers(char* ip, int port)
 {
     printf("Getting peers: [IP = %s, Port: = %d]\n", ip, port);
 
     char url[255];
     snprintf(url, sizeof url, "%s:%d/api/peers", ip, port);
 
+    ArkPeerArray apa = {0};
     RestResponse *ars = ark_api_get(url);
 
-    if (ars->data == NULL)
-        return NULL;
+    if (ars->size == 0 || ars->data == NULL)
+        return apa;
 
     cJSON *root = cJSON_Parse(ars->data);
 
     if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return NULL;
+        return apa;
 
     cJSON *peers = cJSON_GetObjectItem(root, "peers");
     int total = cJSON_GetArraySize(peers);
 
     ArkPeer *data = malloc(total * sizeof(ArkPeer));
     if (!data)
-        return NULL;
+        return apa;
 
     for (int i = 0; i < total; i++)
     {
@@ -210,11 +237,14 @@ ArkPeer* ark_api_get_peers(char* ip, int port)
         data[i] = ark_helpers_get_ArkPeer(peerJson);
     }
 
+    apa.length = total;
+    apa.data = data;
+
     free(peers);
     free(root);
     ars = NULL;
 
-    return data;
+    return apa;
 }
 
 ArkFee ark_api_get_fee(char* ip, int port)

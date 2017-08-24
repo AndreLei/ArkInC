@@ -25,11 +25,13 @@ int ark_helpers_isNull(ArkNetwork network);
 
 int ark_global_setEnvrionment(ARKNETWORKTYPE networkType);
 
+int ark_global_filterPeers();
+
 ArkNetwork ark_api_get_network(char *ip, int port);
 
 ArkPeer ark_helpers_get_randomPeer();
 
-ArkPeer* ark_api_get_peers(char *ip, int port);
+ArkPeerArray ark_api_get_peers(char *ip, int port);
 
 ArkFee ark_api_get_fee(char *ip, int port);
 
