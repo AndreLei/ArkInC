@@ -236,8 +236,8 @@ int main()
     CURLcode res;
     */
 
-    int bcStatus = ark_global_setEnvrionment(DEVELOPMENT);
-    if (bcStatus == 1)
+    int arkBlockchainSetupFailed = ark_global_setEnvrionment(DEVELOPMENT);
+    if (arkBlockchainSetupFailed == 0)
     {
         printf("[ARK] Unable to connect to blockchain\n");
         return 0;

@@ -21,7 +21,11 @@ ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json);
 
 ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json);
 
-int ark_helpers_isNull(ArkNetwork network);
+int ark_helpers_isNetworkNull(ArkNetwork network);
+
+int ark_helpers_isPeerNull(ArkPeer peer);
+
+int ark_helpers_isFeeNull(ArkFee fee);
 
 int ark_global_setEnvrionment(ARKNETWORKTYPE networkType);
 

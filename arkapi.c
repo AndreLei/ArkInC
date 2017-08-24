@@ -31,7 +31,7 @@ ARKPEERSTATUS getArkPeerStatus(const char* string)
 
 ArkPeer ark_helpers_get_ArkPeer(const cJSON * const json)
 {
-    ArkPeer peer;
+    ArkPeer peer = {0};
     peer.ip = cJSON_GetObjectItem(json, "ip")->valuestring;
     peer.port = cJSON_GetObjectItem(json, "port")->valueint;
     peer.version = cJSON_GetObjectItem(json, "version")->valuestring;
@@ -44,7 +44,7 @@ ArkPeer ark_helpers_get_ArkPeer(const cJSON * const json)
 
 ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json)
 {
-    ArkDelegate delegate;
+    ArkDelegate delegate = {0};
     delegate.username = cJSON_GetObjectItem(json, "username")->valuestring;
     delegate.address = cJSON_GetObjectItem(json, "address")->valuestring;
     delegate.publicKey = cJSON_GetObjectItem(json, "publicKey")->valuestring;
@@ -60,7 +60,7 @@ ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json)
 
 ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json)
 {
-    ArkVoter voter;
+    ArkVoter voter = {0};
     voter.username = cJSON_GetObjectItem(json, "username")->valuestring;
     voter.address = cJSON_GetObjectItem(json, "address")->valuestring;
     voter.publicKey = cJSON_GetObjectItem(json, "publicKey")->valuestring;
@@ -73,13 +73,35 @@ ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json)
 /// PRIVATE ARK GLOBAL FUNCTIONS
 /// --------------------
 
-int ark_helpers_isNull(ArkNetwork network)
+int ark_helpers_isNetworkNull(ArkNetwork network)
 {
     return (network.explorer == NULL &&
             network.netHash == NULL &&
             network.symbol == NULL &&
             network.token == NULL &&
             network.version == 0)
+            ? 1 : 0;
+}
+
+int ark_helpers_isPeerNull(ArkPeer peer)
+{
+    return (peer.delay == 0 &&
+            peer.height == 0 &&
+            peer.ip == NULL &&
+            peer.os == NULL &&
+            peer.port == 0 &&
+            peer.status == NULL &&
+            peer.version == NULL)
+            ? 1 : 0;
+}
+
+int ark_helpers_isFeeNull(ArkFee fee)
+{
+    return (fee.delegate == 0 &&
+            fee.multiSignature == 0 &&
+            fee.secondSignature == 0 &&
+            fee.send == 0 &&
+            fee.vote == 0)
             ? 1 : 0;
 }
 
@@ -91,39 +113,48 @@ int ark_global_setEnvrionment(ARKNETWORKTYPE networkType)
     ArkNetwork peerNetworkConfiguration = {0};
     ArkPeer randomPeer = {0};
 
-    int success = 1;
+    int fail = 1;
     int iterations = 5;
-    while (iterations > 0 && success == 1)
+    while (iterations > 0 && fail == 1)
     {
         randomPeer = ark_helpers_get_randomPeer();
         peerNetworkConfiguration = ark_api_get_network(randomPeer.ip, randomPeer.port);
-        success = ark_helpers_isNull(peerNetworkConfiguration);
+        fail = ark_helpers_isNetworkNull(peerNetworkConfiguration);
 
         iterations--;
     }
 
-    if (success == 0)
-    {
-        global_network = peerNetworkConfiguration;
-        global_selectedPeer = ark_api_peers_get(randomPeer, randomPeer.port, randomPeer.ip);
-        global_selectedPeerFee = ark_api_get_fee(global_selectedPeer.ip, global_selectedPeer.port);
+    if (fail == 1)
+        return 0;
 
-        ark_global_filterPeers();
-    }
+    global_network = peerNetworkConfiguration;
+    global_selectedPeer = ark_api_peers_get(randomPeer, randomPeer.port, randomPeer.ip);
 
-    return success;
+    if (ark_helpers_isPeerNull(global_selectedPeer) == 1)
+        return 0;
+
+    global_selectedPeerFee = ark_api_get_fee(global_selectedPeer.ip, global_selectedPeer.port);
+    if (ark_helpers_isFeeNull(global_selectedPeerFee) == 1)
+        return 0;
+
+    return ark_global_filterPeers();
 }
 
 int ark_global_filterPeers()
 {
     printf("[ARK] Filtering peers...\n");
 
-    ArkPeerArray allPeers = ark_api_get_peers(global_selectedPeer.ip, global_selectedPeer.port);
+    ArkPeerArray tuple = ark_api_get_peers(global_selectedPeer.ip, global_selectedPeer.port);
 
-    int x = allPeers.length;
-    printf("Found %d peers\n", x);
+    int num=0;
+    for (int i=0 ; i<tuple.length ; i++)
+    {
+        if (tuple.data[i].status == OK)
+            num++;
+    }
+    printf("[ARK] Filtering peers returned '%d' valid peers...\n", num);
 
-    return 0;
+    return 1;
 }
 
 /// --------------------
