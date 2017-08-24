@@ -236,7 +236,10 @@ int main()
     CURLcode res;
     */
 
-    ArkPeer *peers = ark_api_get_peers("164.8.251.179", 4002);
+    global_networkType = DEVELOPMENT;
+    ArkPeer initPeer = ark_helpers_get_randomPeer();
+
+    ArkPeer *peers = ark_api_get_peers(initPeer.ip, initPeer.port);
     ArkPeer randomPeer = peers[0];
 
     /// get one Peer fees

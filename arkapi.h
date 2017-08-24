@@ -1,9 +1,13 @@
 ﻿#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include <time.h>
 
 #include "jsonresponse.h"
 #include "arkmodels.h"
 #include "cJSON.h"
+
+ARKNETWORKTYPE global_networkType;
 
 ARKPEERSTATUS getArkPeerStatus(const char* string);
 
@@ -12,6 +16,8 @@ ArkPeer ark_helpers_get_ArkPeer(const cJSON * const json);
 ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json);
 
 ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json);
+
+ArkPeer ark_helpers_get_randomPeer();
 
 ArkPeer* ark_api_get_peers(char *ip, int port);
 

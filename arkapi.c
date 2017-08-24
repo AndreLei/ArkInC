@@ -65,6 +65,48 @@ ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json)
     return voter;
 }
 
+ArkPeer ark_helpers_get_randomPeer()
+{
+    ArkPeer peer;
+
+    int peerCount = 0;
+
+    if (global_networkType == MAIN)
+        peerCount = sizeof(SeedArray) / sizeof(SeedArray[0]);
+    if (global_networkType == DEVELOPMENT)
+        peerCount = sizeof(SeedArrayTest) / sizeof(SeedArrayTest[0]);
+
+    time_t t;
+    srand((unsigned) time(&t));
+    int index = rand() % peerCount;
+
+    char* element;
+    if (global_networkType == MAIN)
+        element = SeedArray[index];
+    if (global_networkType == DEVELOPMENT)
+        element = SeedArrayTest[index];
+
+    int x = strchr(element, ':') - element;
+    int y = strlen(element) - x - 1;
+
+    char* ip = malloc(sizeof(char));
+    strncpy(ip, element, x);
+    ip[x] = '\0';
+
+    char* port = malloc(sizeof(char));
+    strncpy(port, element + x + 1, y);
+    port[y] = '\0';
+
+    peer.ip = ip;
+    peer.port = atoi(port);
+
+    element = NULL;
+    ip = NULL;
+    port = NULL;
+
+    return peer;
+}
+
 ArkPeer* ark_api_get_peers(char* ip, int port)
 {
     printf("Getting peers: [IP = %s, Port: = %d]\n", ip, port);
