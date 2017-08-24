@@ -8,6 +8,8 @@ Soon...
 
 ### Windows
 
+#### Build libcurl
+
 Soon...
 
 ```
@@ -62,3 +64,4 @@ See also the list of [contributors](https://google.com) who participated in this
 
 * https://github.com/curl/curl
 * https://github.com/DaveGamble/cJSON
+* https://github.com/bitcoin-core/secp256k1
