@@ -32,12 +32,37 @@ ARKPEERSTATUS getArkPeerStatus(const char* string)
 ArkPeer ark_helpers_get_ArkPeer(const cJSON * const json)
 {
     ArkPeer peer = {0};
-    peer.ip = cJSON_GetObjectItem(json, "ip")->valuestring;
-    peer.port = cJSON_GetObjectItem(json, "port")->valueint;
-    peer.version = cJSON_GetObjectItem(json, "version")->valuestring;
-    peer.os = cJSON_GetObjectItem(json, "os")->valuestring;
-    peer.status = getArkPeerStatus(cJSON_GetObjectItem(json, "status")->valuestring);
-    peer.delay = cJSON_GetObjectItem(json, "delay")->valueint;
+    cJSON* obj = NULL;
+
+    obj = cJSON_GetObjectItem(json, "ip");
+    if (obj != NULL)
+        peer.ip = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "port");
+    if (obj != NULL)
+        peer.port = obj->valueint;
+
+    obj = cJSON_GetObjectItem(json, "version");
+    if (obj != NULL)
+        peer.version = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "os");
+    if (obj != NULL)
+        peer.os = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "status");
+    if (obj != NULL)
+        peer.status = getArkPeerStatus(cJSON_GetObjectItem(json, "status")->valuestring);
+
+    obj = cJSON_GetObjectItem(json, "delay");
+    if (obj != NULL)
+        peer.delay = obj->valueint;
+
+    obj = cJSON_GetObjectItem(json, "height");
+    if (obj != NULL)
+        peer.height = obj->valueint;
+
+    free(obj);
 
     return peer;
 }
@@ -45,15 +70,45 @@ ArkPeer ark_helpers_get_ArkPeer(const cJSON * const json)
 ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json)
 {
     ArkDelegate delegate = {0};
-    delegate.username = cJSON_GetObjectItem(json, "username")->valuestring;
-    delegate.address = cJSON_GetObjectItem(json, "address")->valuestring;
-    delegate.publicKey = cJSON_GetObjectItem(json, "publicKey")->valuestring;
-    delegate.vote = cJSON_GetObjectItem(json, "vote")->valuestring;
-    delegate.producedBlocks = (long)(cJSON_GetObjectItem(json, "producedblocks")->valuedouble + 0.5);
-    delegate.missedBlocks = (long)(cJSON_GetObjectItem(json, "missedblocks")->valuedouble + 0.5);
-    delegate.rate = cJSON_GetObjectItem(json, "rate")->valueint;
-    delegate.approval = cJSON_GetObjectItem(json, "approval")->valuedouble;
-    delegate.productivity = cJSON_GetObjectItem(json, "productivity")->valuedouble;
+    cJSON* obj = NULL;
+
+    obj = cJSON_GetObjectItem(json, "username");
+    if (obj != NULL)
+        delegate.username = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "address");
+    if (obj != NULL)
+        delegate.address = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "publicKey");
+    if (obj != NULL)
+        delegate.publicKey = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "vote");
+    if (obj != NULL)
+        delegate.vote = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "producedblocks");
+    if (obj != NULL)
+        delegate.producedBlocks = (long)(obj->valuedouble + 0.5);
+
+    obj = cJSON_GetObjectItem(json, "missedblocks");
+    if (obj != NULL)
+        delegate.missedBlocks = (long)(obj->valuedouble + 0.5);
+
+    obj = cJSON_GetObjectItem(json, "rate");
+    if (obj != NULL)
+        delegate.rate = obj->valueint;
+
+    obj = cJSON_GetObjectItem(json, "approval");
+    if (obj != NULL)
+        delegate.approval = obj->valuedouble;
+
+    obj = cJSON_GetObjectItem(json, "productivity");
+    if (obj != NULL)
+        delegate.productivity = obj->valuedouble;
+
+    free(obj);
 
     return delegate;
 }
@@ -61,10 +116,25 @@ ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json)
 ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json)
 {
     ArkVoter voter = {0};
-    voter.username = cJSON_GetObjectItem(json, "username")->valuestring;
-    voter.address = cJSON_GetObjectItem(json, "address")->valuestring;
-    voter.publicKey = cJSON_GetObjectItem(json, "publicKey")->valuestring;
-    voter.balance = (long)(cJSON_GetObjectItem(json, "balance")->valuedouble + 0.5);
+    cJSON* obj = NULL;
+
+    obj = cJSON_GetObjectItem(json, "username");
+    if (obj != NULL)
+        voter.username = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "address");
+    if (obj != NULL)
+        voter.address = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "publicKey");
+    if (obj != NULL)
+        voter.publicKey = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "balance");
+    if (obj != NULL)
+        voter.balance = (long)(obj->valuedouble + 0.5);
+
+    free(obj);
 
     return voter;
 }
@@ -146,13 +216,24 @@ int ark_global_filterPeers()
 
     ArkPeerArray tuple = ark_api_get_peers(global_selectedPeer.ip, global_selectedPeer.port);
 
-    int num=0;
+    int maxheight = global_selectedPeer.height;
+    printf("[ARK] Active Peer with bigger block height: [IP = %s, Port = %d, Height = %d]\n", global_selectedPeer.ip, global_selectedPeer.port, global_selectedPeer.height);
+    int numOfValidPeers = 0;
     for (int i=0 ; i<tuple.length ; i++)
     {
         if (tuple.data[i].status == OK)
-            num++;
+        {
+            numOfValidPeers++;
+            if (tuple.data[i].height > maxheight)
+            {
+                global_selectedPeer = tuple.data[i];
+                printf("[ARK] Setting new active Peer with bigger block height: [IP = %s, Port = %d, Height = %d]\n", global_selectedPeer.ip, global_selectedPeer.port, global_selectedPeer.height);
+            }
+            else
+                printf("Peer with height: [IP = %s, Port = %d, Height = %d]\n", tuple.data[i].ip, tuple.data[i].port, tuple.data[i].height);
+        }
     }
-    printf("[ARK] Filtering peers returned '%d' valid peers...\n", num);
+    printf("[ARK] Filtering peers returned '%d' valid peers...\n", numOfValidPeers);
 
     return 1;
 }
@@ -483,7 +564,7 @@ ArkDelegate ark_api_get_delegate_by_username(char* ip, int port, char* username)
     char url[255];
     snprintf(url, sizeof url, "%s:%d/api/delegates/get?username=%s", ip, port, username);
 
-    ArkDelegate delegate;
+    ArkDelegate delegate = {0};
     RestResponse *ars = ark_api_get(url);
 
     if (ars->data == NULL)

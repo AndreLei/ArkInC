@@ -242,6 +242,7 @@ int main()
         printf("[ARK] Unable to connect to blockchain\n");
         return 0;
     }
+    return 0;
 
     ArkPeer initPeer = ark_helpers_get_randomPeer();
 
