@@ -16,6 +16,11 @@ typedef struct {
 } ArkPeer;
 
 typedef struct {
+    int length;
+    ArkPeer* data;
+} ArkPeerArray;
+
+typedef struct {
     long send;
     long vote;
     long delegate;
@@ -46,6 +51,14 @@ typedef struct {
     char* publicKey;
     long balance;
 } ArkVoter;
+
+typedef struct {
+    char* netHash;
+    char* token;
+    char* symbol;
+    char* explorer;
+    int version;
+} ArkNetwork;
 
 ///CONSTANTS
 

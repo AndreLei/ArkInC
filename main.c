@@ -236,8 +236,17 @@ int main()
     CURLcode res;
     */
 
-    ArkPeer *peers = ark_api_get_peers("164.8.251.179", 4002);
-    ArkPeer randomPeer = peers[0];
+    int bcStatus = ark_global_setEnvrionment(DEVELOPMENT);
+    if (bcStatus == 1)
+    {
+        printf("[ARK] Unable to connect to blockchain\n");
+        return 0;
+    }
+
+    ArkPeer initPeer = ark_helpers_get_randomPeer();
+
+    ArkPeerArray peers = ark_api_get_peers(initPeer.ip, initPeer.port);
+    ArkPeer randomPeer = peers.data[0];
 
     /// get one Peer fees
     ArkFee fee = ark_api_get_fee(randomPeer.ip, randomPeer.port);
@@ -246,17 +255,17 @@ int main()
     ArkPeer arkpeer = ark_api_peers_get(randomPeer, 4002, "164.8.251.179");
 
     /// api/blocks/getEpoch TEST
-    char* epoch = ark_api_blocks_getEpoch(peers[0]);
+    char* epoch = ark_api_blocks_getEpoch(randomPeer.ip, randomPeer.port);
 
     /// api/blocks/getHeight TEST
-    ArkBlockHeight arkblockheight = ark_api_blocks_getHeight(peers[0]);
+    ArkBlockHeight arkblockheight = ark_api_blocks_getHeight(randomPeer.ip, randomPeer.port);
 
     /// api/blocks/getFee TEST
-    int arkfee = ark_api_blocks_getFee(peers[0]);
+    int arkfee = ark_api_blocks_getFee(randomPeer.ip, randomPeer.port);
 
     /// api/blocks/getNethash TEST
-    char* netHash = ark_api_blocks_getNethash(peers[0]);
-    //time_t epoch = ark_api_blocks_getEpoch(randomPeer);
+    char* netHash = ark_api_blocks_getNethash(randomPeer.ip, randomPeer.port);
+
     /// api/blocks/getMilestone
     //int milestone =
 
@@ -273,7 +282,6 @@ int main()
     ArkVoter *voters;
     voters = ark_api_get_delegate_voters(randomPeer.ip, randomPeer.port, randomDelegate.publicKey);
 
-    peers = NULL;
     delegates = NULL;
     voters = NULL;
 
