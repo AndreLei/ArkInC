@@ -13,11 +13,13 @@ include_directories(${CMAKE_SOURCE_DIR}/secp256k1/src)
 set(SOURCE_FILES
     arkapi.h
     arkapi.c
+    arkcore.h
+    arkcore.c
+    arkhelpers.h
+    arkhelpers.c
     arkmodels.h
     cJSON.h
     cJSON.c
-    jsonresponse.h
-    jsonresponse.c
     main.h
     main.c)
 

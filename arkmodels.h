@@ -1,9 +1,16 @@
 ﻿#ifndef __arkmodels_h__
 #define __arkmodels_h__
 
+#include <stdio.h>
+
 typedef enum { DEVELOPMENT, MAIN } ARKNETWORKTYPE;
 
 typedef enum { OK, EUNAVAILABLE, ETIMEOUT } ARKPEERSTATUS;
+
+typedef struct {
+    char *data;
+    size_t size;
+} ArkRestResponse;
 
 typedef struct {
     char* ip;
@@ -46,11 +53,21 @@ typedef struct {
 } ArkDelegate;
 
 typedef struct {
+    int length;
+    ArkDelegate* data;
+} ArkDelegateArray;
+
+typedef struct {
     char* username;
     char* address;
     char* publicKey;
     long balance;
 } ArkVoter;
+
+typedef struct {
+    int length;
+    ArkVoter* data;
+} ArkVoterArray;
 
 typedef struct {
     char* netHash;

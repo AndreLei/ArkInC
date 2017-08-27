@@ -3,47 +3,34 @@
 #include <math.h>
 #include <time.h>
 
-#include "jsonresponse.h"
-#include "arkmodels.h"
+#include "arkhelpers.h"
 #include "cJSON.h"
 
-ARKNETWORKTYPE global_networkType;
-ArkNetwork global_network;
-ArkPeer* global_filteredPeers;
-ArkPeer global_selectedPeer;
-ArkFee global_selectedPeerFee;
+/// --------------------------------------------------
+/// ARK API - BASE FUNCTIONS
+/// --------------------------------------------------
 
-ARKPEERSTATUS getArkPeerStatus(const char* string);
+/* callback for curl fetch */
+size_t curl_callback (void *contents, size_t size, size_t nmemb, void *userp);
 
-ArkPeer ark_helpers_get_ArkPeer(const cJSON * const json);
+/* fetch and return url body via curl */
+ArkRestResponse* ark_api_get(const char *url);
 
-ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json);
+/// --------------------------------------------------
+/// ARK API - ACCOUNT(S) FUNCTIONS
+/// --------------------------------------------------
 
-ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json);
+// ArkAccount ark_api_accounts_getByAddress()
 
-int ark_helpers_isNetworkNull(ArkNetwork network);
+/// --------------------------------------------------
+/// ARK API - BLOCK(S) FUNCTIONS
+/// --------------------------------------------------
 
-int ark_helpers_isPeerNull(ArkPeer peer);
-
-int ark_helpers_isFeeNull(ArkFee fee);
-
-int ark_global_setEnvrionment(ARKNETWORKTYPE networkType);
-
-int ark_global_filterPeers();
-
-ArkNetwork ark_api_get_network(char *ip, int port);
-
-ArkPeer ark_helpers_get_randomPeer();
-
-ArkPeerArray ark_api_get_peers(char *ip, int port);
-
-ArkFee ark_api_get_fee(char *ip, int port);
-
-ArkPeer ark_api_peers_get(ArkPeer peer, int port, char *ip);
-
-char* ark_api_blocks_getEpoch(char* ip, int port);
+//ArkBlockHeight ark_api_blocks_getLastBlockHeight()
 
 ArkBlockHeight ark_api_blocks_getHeight(char *ip, int port);
+
+char* ark_api_blocks_getEpoch(char* ip, int port);
 
 int ark_api_blocks_getFee(char* ip, int port);
 
@@ -51,8 +38,42 @@ char *ark_api_blocks_getNethash(char *ip, int port);
 
 int ark_blocks_getMilestone(char* ip, int port);
 
-ArkDelegate* ark_api_get_delegates(char* ip, int port);
+/// --------------------------------------------------
+/// ARK API - DELEGATE(S) FUNCTIONS
+/// --------------------------------------------------
 
-ArkDelegate ark_api_get_delegate_by_username(char* ip, int port, char* username);
+ArkDelegateArray ark_api_delegates(char* ip, int port);
 
-ArkVoter* ark_api_get_delegate_voters(char* ip, int port, char* publicKey);
+ArkDelegate ark_api_delegates_getByUsername(char* ip, int port, char* username);
+
+// api/delegates/forging/getForgedByAccount
+
+/// --------------------------------------------------
+/// ARK API - FEE(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkFee ark_api_fees_get(char *ip, int port);
+
+/// --------------------------------------------------
+/// ARK API - NETWORK(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkNetwork ark_api_network_autoconfigure(char *ip, int port);
+
+/// --------------------------------------------------
+/// ARK API - PEER(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkPeerArray ark_api_peers(char* ip, int port);
+
+ArkPeer ark_api_peers_get(ArkPeer peer, char *ip, int port);
+
+/// --------------------------------------------------
+/// ARK API - VOTER(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkVoterArray ark_api_voters_getByDelegate(char* ip, int port, char* publicKey);
+
+/// --------------------------------------------------
+/// ARK API - OTHER FUNCTIONS
+/// --------------------------------------------------

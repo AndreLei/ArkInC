@@ -1,380 +1,349 @@
 ﻿#include "arkapi.h"
 
-/// --------------------
-/// ARK HELPERS
-/// --------------------
+/// --------------------------------------------------
+/// ARK API - BASE FUNCTIONS
+/// --------------------------------------------------
 
-ARKPEERSTATUS getArkPeerStatus(const char* string)
+/* callback for curl fetch */
+size_t curl_callback (void *contents, size_t size, size_t nmemb, void *userp)
 {
-    static struct {
-        const char *s;
-        ARKPEERSTATUS e;
-    } map[] = {
-    { "OK", OK },
-    { "EUNAVAILABLE", EUNAVAILABLE },
-    { "ETIMEOUT", ETIMEOUT },
-};
+    size_t realsize = size * nmemb;                             /* calculate buffer size */
+    ArkRestResponse *p = (ArkRestResponse *) userp;   /* cast pointer to fetch struct */
 
-    ARKPEERSTATUS result = OK;
+    /* expand buffer */
+    p->data = (char *) realloc(p->data, p->size + realsize + 1);
 
-    for (int i = 0 ; i < sizeof(map)/sizeof(map[0]); i++)
-    {
-        if (strcmp(string, map[i].s) == 0)
-        {
-            result = map[i].e;
-            break;
-        }
+    /* check buffer */
+    if (p->data == NULL) {
+        /* this isn't good */
+        fprintf(stderr, "ERROR: Failed to expand buffer in curl_callback");
+        /* free buffer */
+        free(p->data);
+        /* return */
+        return -1;
     }
 
-    return result;
+    /* copy contents to buffer */
+    memcpy(&(p->data[p->size]), contents, realsize);
+
+    /* set new buffer size */
+    p->size += realsize;
+
+    /* ensure null termination */
+    p->data[p->size] = 0;
+
+    /* return size */
+    return realsize;
 }
 
-ArkPeer ark_helpers_get_ArkPeer(const cJSON * const json)
+/* fetch and return url body via curl */
+ArkRestResponse *ark_api_get(const char *url)
 {
-    ArkPeer peer = {0};
-    cJSON* obj = NULL;
+    ArkRestResponse restResponse;                    /* curl fetch struct */
+    ArkRestResponse *response = &restResponse;       /* pointer to fetch struct */
 
-    obj = cJSON_GetObjectItem(json, "ip");
-    if (obj != NULL)
-        peer.ip = obj->valuestring;
+    /* init payload */
+    response->data = (char *) calloc(1, sizeof(response->data));
 
-    obj = cJSON_GetObjectItem(json, "port");
-    if (obj != NULL)
-        peer.port = obj->valueint;
-
-    obj = cJSON_GetObjectItem(json, "version");
-    if (obj != NULL)
-        peer.version = obj->valuestring;
-
-    obj = cJSON_GetObjectItem(json, "os");
-    if (obj != NULL)
-        peer.os = obj->valuestring;
-
-    obj = cJSON_GetObjectItem(json, "status");
-    if (obj != NULL)
-        peer.status = getArkPeerStatus(cJSON_GetObjectItem(json, "status")->valuestring);
-
-    obj = cJSON_GetObjectItem(json, "delay");
-    if (obj != NULL)
-        peer.delay = obj->valueint;
-
-    obj = cJSON_GetObjectItem(json, "height");
-    if (obj != NULL)
-        peer.height = obj->valueint;
-
-    free(obj);
-
-    return peer;
-}
-
-ArkDelegate ark_helpers_get_ArkDelegate(const cJSON * const json)
-{
-    ArkDelegate delegate = {0};
-    cJSON* obj = NULL;
-
-    obj = cJSON_GetObjectItem(json, "username");
-    if (obj != NULL)
-        delegate.username = obj->valuestring;
-
-    obj = cJSON_GetObjectItem(json, "address");
-    if (obj != NULL)
-        delegate.address = obj->valuestring;
-
-    obj = cJSON_GetObjectItem(json, "publicKey");
-    if (obj != NULL)
-        delegate.publicKey = obj->valuestring;
-
-    obj = cJSON_GetObjectItem(json, "vote");
-    if (obj != NULL)
-        delegate.vote = obj->valuestring;
-
-    obj = cJSON_GetObjectItem(json, "producedblocks");
-    if (obj != NULL)
-        delegate.producedBlocks = (long)(obj->valuedouble + 0.5);
-
-    obj = cJSON_GetObjectItem(json, "missedblocks");
-    if (obj != NULL)
-        delegate.missedBlocks = (long)(obj->valuedouble + 0.5);
-
-    obj = cJSON_GetObjectItem(json, "rate");
-    if (obj != NULL)
-        delegate.rate = obj->valueint;
-
-    obj = cJSON_GetObjectItem(json, "approval");
-    if (obj != NULL)
-        delegate.approval = obj->valuedouble;
-
-    obj = cJSON_GetObjectItem(json, "productivity");
-    if (obj != NULL)
-        delegate.productivity = obj->valuedouble;
-
-    free(obj);
-
-    return delegate;
-}
-
-ArkVoter ark_helpers_get_ArkVoter(const cJSON * const json)
-{
-    ArkVoter voter = {0};
-    cJSON* obj = NULL;
-
-    obj = cJSON_GetObjectItem(json, "username");
-    if (obj != NULL)
-        voter.username = obj->valuestring;
-
-    obj = cJSON_GetObjectItem(json, "address");
-    if (obj != NULL)
-        voter.address = obj->valuestring;
-
-    obj = cJSON_GetObjectItem(json, "publicKey");
-    if (obj != NULL)
-        voter.publicKey = obj->valuestring;
-
-    obj = cJSON_GetObjectItem(json, "balance");
-    if (obj != NULL)
-        voter.balance = (long)(obj->valuedouble + 0.5);
-
-    free(obj);
-
-    return voter;
-}
-
-/// --------------------
-/// PRIVATE ARK GLOBAL FUNCTIONS
-/// --------------------
-
-int ark_helpers_isNetworkNull(ArkNetwork network)
-{
-    return (network.explorer == NULL &&
-            network.netHash == NULL &&
-            network.symbol == NULL &&
-            network.token == NULL &&
-            network.version == 0)
-            ? 1 : 0;
-}
-
-int ark_helpers_isPeerNull(ArkPeer peer)
-{
-    return (peer.delay == 0 &&
-            peer.height == 0 &&
-            peer.ip == NULL &&
-            peer.os == NULL &&
-            peer.port == 0 &&
-            peer.status == NULL &&
-            peer.version == NULL)
-            ? 1 : 0;
-}
-
-int ark_helpers_isFeeNull(ArkFee fee)
-{
-    return (fee.delegate == 0 &&
-            fee.multiSignature == 0 &&
-            fee.secondSignature == 0 &&
-            fee.send == 0 &&
-            fee.vote == 0)
-            ? 1 : 0;
-}
-
-int ark_global_setEnvrionment(ARKNETWORKTYPE networkType)
-{
-    printf("[ARK] Setting NetworkType to '%d'\n", networkType);
-    global_networkType = networkType;
-
-    ArkNetwork peerNetworkConfiguration = {0};
-    ArkPeer randomPeer = {0};
-
-    int fail = 1;
-    int iterations = 5;
-    while (iterations > 0 && fail == 1)
+    /* check payload */
+    if (response->data == NULL)
     {
-        randomPeer = ark_helpers_get_randomPeer();
-        peerNetworkConfiguration = ark_api_get_network(randomPeer.ip, randomPeer.port);
-        fail = ark_helpers_isNetworkNull(peerNetworkConfiguration);
-
-        iterations--;
+        /* log error */
+        fprintf(stderr, "ERROR: Failed to allocate payload in curl_fetch_url");
+        /* return error */
+        return response;
     }
 
-    if (fail == 1)
-        return 0;
+    CURL *curl;
 
-    global_network = peerNetworkConfiguration;
-    global_selectedPeer = ark_api_peers_get(randomPeer, randomPeer.port, randomPeer.ip);
-
-    if (ark_helpers_isPeerNull(global_selectedPeer) == 1)
-        return 0;
-
-    global_selectedPeerFee = ark_api_get_fee(global_selectedPeer.ip, global_selectedPeer.port);
-    if (ark_helpers_isFeeNull(global_selectedPeerFee) == 1)
-        return 0;
-
-    return ark_global_filterPeers();
-}
-
-int ark_global_filterPeers()
-{
-    printf("[ARK] Filtering peers...\n");
-
-    ArkPeerArray tuple = ark_api_get_peers(global_selectedPeer.ip, global_selectedPeer.port);
-
-    int maxheight = global_selectedPeer.height;
-    printf("[ARK] Active Peer with bigger block height: [IP = %s, Port = %d, Height = %d]\n", global_selectedPeer.ip, global_selectedPeer.port, global_selectedPeer.height);
-    int numOfValidPeers = 0;
-    for (int i=0 ; i<tuple.length ; i++)
+    curl = curl_easy_init();
+    if (!curl)
     {
-        if (tuple.data[i].status == OK)
-        {
-            numOfValidPeers++;
-            if (tuple.data[i].height > maxheight)
-            {
-                global_selectedPeer = tuple.data[i];
-                printf("[ARK] Setting new active Peer with bigger block height: [IP = %s, Port = %d, Height = %d]\n", global_selectedPeer.ip, global_selectedPeer.port, global_selectedPeer.height);
-            }
-            else
-                printf("Peer with height: [IP = %s, Port = %d, Height = %d]\n", tuple.data[i].ip, tuple.data[i].port, tuple.data[i].height);
-        }
+        fprintf(stderr, "ERROR: Failed to initialize curl");
+        return response;
     }
-    printf("[ARK] Filtering peers returned '%d' valid peers...\n", numOfValidPeers);
 
-    return 1;
+    /* init size */
+    response->size = 0;
+
+    /* set url to fetch */
+    curl_easy_setopt(curl, CURLOPT_URL, url);
+
+    /* set calback function */
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_callback);
+
+    /* pass fetch struct pointer */
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *) response);
+
+    /* set default user agent */
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "libcurl-agent/1.0");
+
+    /* set timeout */
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 5);
+
+    /* enable location redirects */
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+
+    /* set maximum allowed redirects */
+    curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 1);
+
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Accept: application/json");
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "charsets: utf-8");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+
+    /* fetch the url */
+    CURLcode rcode = curl_easy_perform(curl);
+
+    /* return */
+    return response;
 }
 
-/// --------------------
-/// PUBLIC ARK FUNCTIONS
-/// --------------------
+/// --------------------------------------------------
+/// ARK API - ACCOUNT(S) FUNCTIONS
+/// --------------------------------------------------
 
-ArkNetwork ark_api_get_network(char *ip, int port)
+//ArkAccount ark_api_accounts_getByAddress()
+
+/// --------------------------------------------------
+/// ARK API - BLOCK(S) FUNCTIONS
+/// --------------------------------------------------
+
+//ArkBlockHeight ark_api_blocks_getLastBlockHeight()
+
+ArkBlockHeight ark_api_blocks_getHeight(char* ip, int port)
 {
-    printf("[ARK] Getting network configuration for a peer: [IP = %s, Port = %d]\n", ip, port);
+    printf("[ARK API] Getting ArkPeers height: [IP = %s, Port = %d]\n", ip, port);
 
     char url[255];
-    snprintf(url, sizeof url, "%s:%d/api/loader/autoconfigure", ip, port);
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getHeight", ip, port);
 
-    ArkNetwork network = {0};
-    RestResponse *ars = ark_api_get(url);
+    ArkBlockHeight arkblockheight = {0};
+    ArkRestResponse *ars = ark_api_get(url);
 
     if (ars->size == 0 || ars->data == NULL)
-        return network;
+        return arkblockheight;
 
     cJSON *root = cJSON_Parse(ars->data);
 
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return network;
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return arkblockheight;
 
-    cJSON *networkJson = cJSON_GetObjectItem(root, "network");
+    arkblockheight.id = cJSON_GetObjectItem(root, "id")->valuestring;
+    arkblockheight.height = cJSON_GetObjectItem(root, "height")->valueint;
 
-    network.netHash = cJSON_GetObjectItem(networkJson, "nethash")->valuestring;
-    network.token = cJSON_GetObjectItem(networkJson, "token")->valuestring;
-    network.symbol = cJSON_GetObjectItem(networkJson, "symbol")->valuestring;
-    network.explorer = cJSON_GetObjectItem(networkJson, "explorer")->valuestring;
-    network.version = cJSON_GetObjectItem(networkJson, "version")->valueint;
-
-    free(networkJson);
     free(root);
     ars = NULL;
 
-    return network;
+    return arkblockheight;
 }
 
-ArkPeer ark_helpers_get_randomPeer()
+char* ark_api_blocks_getEpoch(char* ip, int port)
 {
-    ArkPeer peer = {0};
-
-    int peerCount = 0;
-
-    if (global_networkType == MAIN)
-        peerCount = sizeof(SeedArray) / sizeof(SeedArray[0]);
-    if (global_networkType == DEVELOPMENT)
-        peerCount = sizeof(SeedArrayTest) / sizeof(SeedArrayTest[0]);
-
-    time_t t;
-    srand((unsigned) time(&t));
-    int index = rand() % peerCount;
-
-    char* element;
-    if (global_networkType == MAIN)
-        element = SeedArray[index];
-    if (global_networkType == DEVELOPMENT)
-        element = SeedArrayTest[index];
-
-    int x = strchr(element, ':') - element;
-    int y = strlen(element) - x - 1;
-
-    char* ip = malloc(sizeof(char));
-    strncpy(ip, element, x);
-    ip[x] = '\0';
-
-    char* port = malloc(sizeof(char));
-    strncpy(port, element + x + 1, y);
-    port[y] = '\0';
-
-    peer.ip = ip;
-    peer.port = atoi(port);
-
-    element = NULL;
-    ip = NULL;
-    port = NULL;
-
-    return peer;
-}
-
-ArkPeerArray ark_api_get_peers(char* ip, int port)
-{
-    printf("Getting peers: [IP = %s, Port: = %d]\n", ip, port);
+    printf("[ARK API] Getting ArkBlock Epoch: [IP = %s, Port = %d]\n", ip, port);
 
     char url[255];
-    snprintf(url, sizeof url, "%s:%d/api/peers", ip, port);
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getEpoch", ip, port);
 
-    ArkPeerArray apa = {0};
-    RestResponse *ars = ark_api_get(url);
+    ArkRestResponse *ars = ark_api_get(url);
 
     if (ars->size == 0 || ars->data == NULL)
-        return apa;
+        return NULL;
 
     cJSON *root = cJSON_Parse(ars->data);
 
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return apa;
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return NULL;
 
-    cJSON *peers = cJSON_GetObjectItem(root, "peers");
-    int total = cJSON_GetArraySize(peers);
+    char* time = "";
+    time = cJSON_GetObjectItem(root, "epoch")->valuestring;
 
-    ArkPeer *data = malloc(total * sizeof(ArkPeer));
-    if (!data)
-        return apa;
-
-    for (int i = 0; i < total; i++)
-    {
-        cJSON *peerJson = cJSON_GetArrayItem(peers, i);
-
-        data[i] = ark_helpers_get_ArkPeer(peerJson);
-    }
-
-    apa.length = total;
-    apa.data = data;
-
-    free(peers);
     free(root);
     ars = NULL;
 
-    return apa;
+    return time;
 }
 
-ArkFee ark_api_get_fee(char* ip, int port)
+int ark_api_blocks_getFee(char *ip, int port)
 {
-    printf("Getting fees for a peer: [IP = %s, Port = %d]\n", ip, port);
+    printf("[ARK API] Getting ArkFee from: [IP = %s, Port = %d]\n", ip, port);
 
+    int fee = -1;
     char url[255];
-    snprintf(url, sizeof url, "%s:%d/api/blocks/getfees", ip, port);
 
-    ArkFee fee = {0};
-    RestResponse *ars = ark_api_get(url);
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getFee", ip, port);
+
+    ArkRestResponse *ars = ark_api_get(url);
 
     if (ars->size == 0 || ars->data == NULL)
         return fee;
 
     cJSON *root = cJSON_Parse(ars->data);
 
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return fee;
+
+    fee = cJSON_GetObjectItem(root, "fee")->valueint;
+
+    free(root);
+    ars = NULL;
+
+    return fee;
+}
+
+char *ark_api_blocks_getNethash(char* ip, int port)
+{
+    printf("[ARK API] Getting NetHash from: [IP = %s, Port = %d]\n", ip, port);
+
+    char* nethash = "";
+    char url[255];
+
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getNethash", ip, port);
+
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return nethash;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return nethash;
+
+    nethash = cJSON_GetObjectItem(root, "nethash")->valuestring;
+
+    free(root);
+    ars = NULL;
+
+    return nethash;
+}
+
+int ark_blocks_getMilestone(char *ip, int port)
+{
+    printf("[ARK API] Getting milestone from: [IP = %s, Port = %d]\n", ip, port);
+
+    int milestone = -1;
+    char url[255];
+
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getMilestone", ip, port);
+
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return milestone;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return milestone;
+
+    milestone = cJSON_GetObjectItem(root, "milestone")->valueint;
+
+    free(root);
+    ars = NULL;
+
+    return milestone;
+}
+
+/// --------------------------------------------------
+/// ARK API - DELEGATE(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkDelegateArray ark_api_delegates(char* ip, int port)
+{
+    printf("[ARK API] Getting delegates: [IP = %s, Port: = %d]\n", ip, port);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/delegates", ip, port);
+
+    ArkDelegateArray ada = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return ada;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return ada;
+
+    cJSON *delegates = cJSON_GetObjectItem(root, "delegates");
+    int total = cJSON_GetArraySize(delegates);
+
+    ArkDelegate *data = malloc(total * sizeof(ArkDelegate));
+    if (!data)
+        return ada;
+
+    for (int i = 0; i < total; i++)
+    {
+        cJSON *delegateJson = cJSON_GetArrayItem(delegates, i);
+
+        data[i] = ark_helpers_getArkDelegate_fromJSON(delegateJson);
+    }
+
+    ada.length = total;
+    ada.data = data;
+
+    free(delegates);
+    free(root);
+    ars = NULL;
+
+    return ada;
+}
+
+ArkDelegate ark_api_delegates_getByUsername(char* ip, int port, char* username)
+{
+    printf("Getting delegate by username: [IP = %s, Port: = %d, Username = %s]\n", ip, port, username);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/delegates/get?username=%s", ip, port, username);
+
+    ArkDelegate delegate = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->data == NULL)
+        return delegate;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return delegate;
+
+    cJSON *delegateJson = cJSON_GetObjectItem(root, "delegate");
+
+    delegate = ark_helpers_getArkDelegate_fromJSON(delegateJson);
+
+    free(delegateJson);
+    free(root);
+    ars = NULL;
+
+    return delegate;
+}
+
+// api/delegates/forging/getForgedByAccount
+
+/// --------------------------------------------------
+/// ARK API - FEE(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkFee ark_api_fees_get(char* ip, int port)
+{
+    printf("[ARK API] Getting fees for an ArkPeer: [IP = %s, Port = %d]\n", ip, port);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/blocks/getfees", ip, port);
+
+    ArkFee fee = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return fee;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
         return fee;
 
     cJSON *feeJson = cJSON_GetObjectItem(root, "fees");
@@ -392,25 +361,110 @@ ArkFee ark_api_get_fee(char* ip, int port)
     return fee;
 }
 
-ArkPeer ark_api_peers_get(ArkPeer peer, int port, char *ip)
+/// --------------------------------------------------
+/// ARK API - NETWORK(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkNetwork ark_api_network_autoconfigure(char *ip, int port)
 {
+    printf("[ARK API] Getting network configuration for an ArkPeer: [IP = %s, Port = %d]\n", ip, port);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/loader/autoconfigure", ip, port);
+
+    ArkNetwork network = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return network;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return network;
+
+    cJSON *networkJson = cJSON_GetObjectItem(root, "network");
+
+    network.netHash = cJSON_GetObjectItem(networkJson, "nethash")->valuestring;
+    network.token = cJSON_GetObjectItem(networkJson, "token")->valuestring;
+    network.symbol = cJSON_GetObjectItem(networkJson, "symbol")->valuestring;
+    network.explorer = cJSON_GetObjectItem(networkJson, "explorer")->valuestring;
+    network.version = cJSON_GetObjectItem(networkJson, "version")->valueint;
+
+    free(networkJson);
+    free(root);
+    ars = NULL;
+
+    return network;
+}
+
+/// --------------------------------------------------
+/// ARK API - PEER(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkPeerArray ark_api_peers(char* ip, int port)
+{
+    printf("[ARK API] Getting peers: [IP = %s, Port: = %d]\n", ip, port);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/peers", ip, port);
+
+    ArkPeerArray apa = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return apa;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return apa;
+
+    cJSON *peers = cJSON_GetObjectItem(root, "peers");
+    int total = cJSON_GetArraySize(peers);
+
+    ArkPeer *data = malloc(total * sizeof(ArkPeer));
+    if (!data)
+        return apa;
+
+    for (int i = 0; i < total; i++)
+    {
+        cJSON *peerJson = cJSON_GetArrayItem(peers, i);
+
+        data[i] = ark_helpers_getArkPeer_fromJSON(peerJson);
+    }
+
+    apa.length = total;
+    apa.data = data;
+
+    free(peers);
+    free(root);
+    ars = NULL;
+
+    return apa;
+}
+
+ArkPeer ark_api_peers_get(ArkPeer peer, char *ip, int port)
+{
+    printf("[ARK API] Getting ArkPeers details: [IP = %s, Port = %d]\n", ip, port);
+
     char url[255];
     snprintf(url, sizeof url, "%s:%d/api/peers/get?port=%d&ip=%s", peer.ip, peer.port, port, ip);
 
     ArkPeer arkpeer = {0};
-    RestResponse *ars = ark_api_get(url);
+    ArkRestResponse *ars = ark_api_get(url);
 
     if (ars->size == 0 || ars->data == NULL)
         return arkpeer;
 
     cJSON *root = cJSON_Parse(ars->data);
 
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
+    if (ark_helpers_isResponseSuccess(root) == 0)
         return arkpeer;
 
     cJSON *peerJson = cJSON_GetObjectItem(root, "peer");
 
-    arkpeer = ark_helpers_get_ArkPeer(peerJson);
+    arkpeer = ark_helpers_getArkPeer_fromJSON(peerJson);
 
     free(peerJson);
     free(root);
@@ -419,232 +473,52 @@ ArkPeer ark_api_peers_get(ArkPeer peer, int port, char *ip)
     return arkpeer;
 }
 
-char* ark_api_blocks_getEpoch(char* ip, int port)
+/// --------------------------------------------------
+/// ARK API - VOTER(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkVoterArray ark_api_voters_getByDelegate(char* ip, int port, char* publicKey)
 {
-    char url[255];
-    snprintf(url, sizeof url, "%s:%d/api/blocks/getEpoch", ip, port);
-
-    RestResponse *ars = ark_api_get(url);
-
-    if (ars->data == NULL)
-        return NULL;
-
-    cJSON *root = cJSON_Parse(ars->data);
-
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return NULL;
-
-    char* time = "";
-    time = cJSON_GetObjectItem(root, "epoch")->valuestring;
-
-    free(root);
-    ars = NULL;
-
-    return time;
-}
-
-ArkBlockHeight ark_api_blocks_getHeight(char* ip, int port)
-{
-    ArkBlockHeight arkblockheight;
-    char url[255];
-
-    snprintf(url, sizeof url, "%s:%d/api/blocks/getHeight", ip, port);
-
-    RestResponse *ars = ark_api_get(url);
-
-    if (ars->data == NULL)
-        return arkblockheight;
-
-    cJSON *root = cJSON_Parse(ars->data);
-
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return arkblockheight;
-
-    arkblockheight.id = cJSON_GetObjectItem(root, "id")->valuestring;
-    arkblockheight.height = cJSON_GetObjectItem(root, "height")->valueint;
-
-    free(root);
-    ars = NULL;
-
-    return arkblockheight;
-}
-
-int ark_api_blocks_getFee(char *ip, int port)
-{
-    int fee = -1;
-    char url[255];
-
-    snprintf(url, sizeof url, "%s:%d/api/blocks/getFee", ip, port);
-
-    RestResponse *ars = ark_api_get(url);
-
-    if (ars->data == NULL)
-        return fee;
-
-    cJSON *root = cJSON_Parse(ars->data);
-
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return fee;
-
-    fee = cJSON_GetObjectItem(root, "fee")->valueint;
-
-    free(root);
-    ars = NULL;
-
-    return fee;
-}
-
-char *ark_api_blocks_getNethash(char* ip, int port)
-{
-    char* nethash = "";
-    char url[255];
-
-    snprintf(url, sizeof url, "%s:%d/api/blocks/getNethash", ip, port);
-
-    RestResponse *ars = ark_api_get(url);
-
-    if (ars->data == NULL)
-        return nethash;
-
-    cJSON *root = cJSON_Parse(ars->data);
-
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return nethash;
-
-    nethash = cJSON_GetObjectItem(root, "nethash")->valuestring;
-
-    free(root);
-    ars = NULL;
-
-    return nethash;
-}
-
-ArkDelegate* ark_api_get_delegates(char* ip, int port)
-{
-    printf("Getting delegates: [IP = %s, Port: = %d]\n", ip, port);
-
-    char url[255];
-    snprintf(url, sizeof url, "%s:%d/api/delegates", ip, port);
-
-    RestResponse *ars = ark_api_get(url);
-
-    if (ars->data == NULL)
-        return NULL;
-
-    cJSON *root = cJSON_Parse(ars->data);
-
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return NULL;
-
-    cJSON *delegates = cJSON_GetObjectItem(root, "delegates");
-    int total = cJSON_GetArraySize(delegates);
-
-    ArkDelegate *data = malloc(total * sizeof(ArkDelegate));
-    if (!data)
-        return NULL;
-
-    for (int i = 0; i < total; i++)
-    {
-        cJSON *delegateJson = cJSON_GetArrayItem(delegates, i);
-
-        data[i] = ark_helpers_get_ArkDelegate(delegateJson);
-    }
-
-    free(delegates);
-    free(root);
-    ars = NULL;
-
-    return data;
-}
-
-ArkDelegate ark_api_get_delegate_by_username(char* ip, int port, char* username)
-{
-    printf("Getting delegate by username: [IP = %s, Port: = %d, Username = %s]\n", ip, port, username);
-
-    char url[255];
-    snprintf(url, sizeof url, "%s:%d/api/delegates/get?username=%s", ip, port, username);
-
-    ArkDelegate delegate = {0};
-    RestResponse *ars = ark_api_get(url);
-
-    if (ars->data == NULL)
-        return delegate;
-
-    cJSON *root = cJSON_Parse(ars->data);
-
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return delegate;
-
-    cJSON *delegateJson = cJSON_GetObjectItem(root, "delegate");
-
-    delegate = ark_helpers_get_ArkDelegate(delegateJson);
-
-    free(delegateJson);
-    free(root);
-    ars = NULL;
-
-    return delegate;
-}
-
-int ark_blocks_getMilestone(char *ip, int port)
-{
-    int milestone = -1;
-    char url[255];
-
-    snprintf(url, sizeof url, "%s:%d/api/blocks/getMilestone", ip, port);
-
-    RestResponse *ars = ark_api_get(url);
-
-    if (ars->data == NULL)
-        return milestone;
-
-    cJSON *root = cJSON_Parse(ars->data);
-
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return milestone;
-
-    milestone = cJSON_GetObjectItem(root, "milestone")->valueint;
-
-    free(root);
-    ars = NULL;
-
-    return milestone;
-}
-
-ArkVoter* ark_api_get_delegate_voters(char* ip, int port, char* publicKey)
-{
-    printf("Getting delegate voters: [IP = %s, Port: = %d, PublicKey = %s]\n", ip, port, publicKey);
+    printf("[ARK API] Getting ArkDelegate voters: [IP = %s, Port: = %d, PublicKey = %s]\n", ip, port, publicKey);
 
     char url[255];
     snprintf(url, sizeof url, "%s:%d/api/delegates/voters?publicKey=%s", ip, port, publicKey);
 
-    RestResponse *ars = ark_api_get(url);
+    ArkVoterArray ava = {0};
+    ArkRestResponse *ars = ark_api_get(url);
 
-    if (ars->data == NULL)
-        return NULL;
+    if (ars->size == 0 || ars->data == NULL)
+        return ava;
 
     cJSON *root = cJSON_Parse(ars->data);
 
-    if ((cJSON_GetObjectItem(root, "success")->valueint) != 1)
-        return NULL;
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return ava;
 
     cJSON *voters = cJSON_GetObjectItem(root, "accounts");
     int total = cJSON_GetArraySize(voters);
 
     ArkVoter *data = malloc(total * sizeof(ArkVoter));
     if (!data)
-        return NULL;
+        return ava;
 
     for (int i = 0; i < total; i++)
     {
         cJSON *voterJson = cJSON_GetArrayItem(voters, i);
 
-        data[i] = ark_helpers_get_ArkVoter(voterJson);
+        data[i] = ark_helpers_getArkVoter_fromJSON(voterJson);
     }
+
+    ava.length = total;
+    ava.data = data;
 
     free(voters);
     free(root);
     ars = NULL;
 
-    return data;
+    return ava;
 }
+
+/// --------------------------------------------------
+/// ARK API - OTHER FUNCTIONS
+/// --------------------------------------------------
