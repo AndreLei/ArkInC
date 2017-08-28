@@ -566,12 +566,125 @@ int ark_api_peers_getStatus(char* ip, int port)
 /// ARK API - TRANSACTION(S) FUNCTIONS
 /// --------------------------------------------------
 
+ArkTransactionArray ark_api_transactions()
+{
+    printf("[ARK API] Getting transactions\n");
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/transactions", "TBD", 0);
+
+    ArkTransactionArray ata = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return ata;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return ata;
+
+    cJSON *transactions = cJSON_GetObjectItem(root, "transactions");
+    int total = cJSON_GetArraySize(transactions);
+
+    ArkTransaction *data = malloc(total * sizeof(ArkTransaction));
+    if (!data)
+        return ata;
+
+    for (int i = 0; i < total; i++)
+    {
+        cJSON *transactionJson = cJSON_GetArrayItem(transactions, i);
+
+        data[i] = ark_helpers_getArkTransaction_fromJSON(transactionJson);
+    }
+
+    ata.length = total;
+    ata.data = data;
+
+    free(transactions);
+    free(root);
+    ars = NULL;
+
+    return ata;
+}
+
+ArkTransactionArray ark_api_transactions_unconfirmed()
+{
+    printf("[ARK API] Getting unconfirmed transactions\n");
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/transactions/unconfirmed", "TBD", 0);
+
+    ArkTransactionArray ata = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return ata;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return ata;
+
+    cJSON *transactions = cJSON_GetObjectItem(root, "transactions");
+    int total = cJSON_GetArraySize(transactions);
+
+    ArkTransaction *data = malloc(total * sizeof(ArkTransaction));
+    if (!data)
+        return ata;
+
+    for (int i = 0; i < total; i++)
+    {
+        cJSON *transactionJson = cJSON_GetArrayItem(transactions, i);
+
+        data[i] = ark_helpers_getArkTransaction_fromJSON(transactionJson);
+    }
+
+    ata.length = total;
+    ata.data = data;
+
+    free(transactions);
+    free(root);
+    ars = NULL;
+
+    return ata;
+}
+
 ArkTransaction ark_api_transactions_get(char* id)
 {
     printf("[ARK API] Getting ArkTransaction details: [ID = %s]\n", id);
 
     char url[255];
     snprintf(url, sizeof url, "%s:%d/transactions/get?id=%s", "TBD", 0, id);
+
+    ArkTransaction arkTransaction = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return arkTransaction;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return arkTransaction;
+
+    cJSON *transactionJson = cJSON_GetObjectItem(root, "transaction");
+
+    arkTransaction = ark_helpers_getArkTransaction_fromJSON(transactionJson);
+
+    free(transactionJson);
+    free(root);
+    ars = NULL;
+
+    return arkTransaction;
+}
+
+ArkTransaction ark_api_transactions_getUnconfirmed(char* id)
+{
+    printf("[ARK API] Getting ArkTransaction details: [ID = %s]\n", id);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/transactions/unconfirmed/get?id=%s", "TBD", 0, id);
 
     ArkTransaction arkTransaction = {0};
     ArkRestResponse *ars = ark_api_get(url);

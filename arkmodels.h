@@ -106,6 +106,11 @@ typedef struct {
     char*               vendorField;
 } ArkTransaction;
 
+typedef struct {
+    int                 length;
+    ArkTransaction*     data;
+} ArkTransactionArray;
+
 /// --------------------------------------------------
 /// CONSTANTS
 /// --------------------------------------------------
