@@ -12,10 +12,37 @@ ARKPEERSTATUS ark_helpers_getArkPeerStatus_fromString(const char* string)
     } map[] = {
     { "OK", OK },
     { "EUNAVAILABLE", EUNAVAILABLE },
-    { "ETIMEOUT", ETIMEOUT },
+    { "ETIMEOUT", ETIMEOUT }
 };
 
     ARKPEERSTATUS result = OK;
+
+    for (int i = 0 ; i < sizeof(map)/sizeof(map[0]); i++)
+    {
+        if (strcmp(string, map[i].s) == 0)
+        {
+            result = map[i].e;
+            break;
+        }
+    }
+
+    return result;
+}
+
+ARKTRANSACTIONTYPE ark_helpers_getArkTransactionType_fromString(const char* string)
+{
+    static struct {
+        const char *s;
+        ARKTRANSACTIONTYPE e;
+    } map[] = {
+    { "SENDARK", SENDARK },
+    { "SECONDSIGNATURE", SECONDSIGNATURE },
+    { "CREATEDELEGATE", CREATEDELEGATE },
+    { "VOTE", VOTE },
+    { "MULTISIGNATURE", MULTISIGNATURE }
+};
+
+    ARKTRANSACTIONTYPE result = OK;
 
     for (int i = 0 ; i < sizeof(map)/sizeof(map[0]); i++)
     {
@@ -137,6 +164,74 @@ ArkVoter ark_helpers_getArkVoter_fromJSON(const cJSON * const json)
     free(obj);
 
     return voter;
+}
+
+ArkTransaction ark_helpers_getArkTransaction_fromJSON(const cJSON * const json)
+{
+    ArkTransaction transaction = {0};
+    cJSON* obj = NULL;
+
+    obj = cJSON_GetObjectItem(json, "amount");
+    if (obj != NULL)
+        transaction.amount = obj->valuedouble;
+
+    obj = cJSON_GetObjectItem(json, "blockid");
+    if (obj != NULL)
+        transaction.blockId = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "confirmation");
+    if (obj != NULL)
+        transaction.confirmation = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "fee");
+    if (obj != NULL)
+        transaction.fee = obj->valuedouble;
+
+    obj = cJSON_GetObjectItem(json, "height");
+    if (obj != NULL)
+        transaction.height = obj->valueint;
+
+    obj = cJSON_GetObjectItem(json, "id");
+    if (obj != NULL)
+        transaction.id = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "recipientid");
+    if (obj != NULL)
+        transaction.recipientId = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "secondsenderpublickey");
+    if (obj != NULL)
+        transaction.secondSenderPublicKey = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "senderid");
+    if (obj != NULL)
+        transaction.senderId = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "senderpublickey");
+    if (obj != NULL)
+        transaction.senderPublicKey = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "signature");
+    if (obj != NULL)
+        transaction.signature = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "signsignature");
+    if (obj != NULL)
+        transaction.signSignature = obj->valuestring;
+
+    obj = cJSON_GetObjectItem(json, "status");
+    if (obj != NULL)
+        transaction.type = ark_helpers_getArkTransactionType_fromString(cJSON_GetObjectItem(json, "type")->valuestring);
+
+    /// TIMESTAMP
+
+    obj = cJSON_GetObjectItem(json, "vendorfield");
+    if (obj != NULL)
+        transaction.vendorField = obj->valuestring;
+
+    free(obj);
+
+    return transaction;
 }
 
 /// --------------------

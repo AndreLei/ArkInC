@@ -8,6 +8,10 @@ int main()
         printf("[ARK] Unable to connect to blockchain\n");
         return 0;
     }
+
+
+    int pirs = ark_api_peers_getStatus(global_selectedPeer.ip, global_selectedPeer.port);
+
     return 0;
 
     ArkPeer initPeer = ark_core_get_randomPeer();

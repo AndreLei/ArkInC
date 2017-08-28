@@ -9,11 +9,15 @@
 
 ARKPEERSTATUS ark_helpers_getArkPeerStatus_fromString(const char* string);
 
+ARKTRANSACTIONTYPE ark_helpers_getArkTransactionType_fromString(const char* string);
+
 ArkPeer ark_helpers_getArkPeer_fromJSON(const cJSON * const json);
 
 ArkDelegate ark_helpers_getArkDelegate_fromJSON(const cJSON * const json);
 
 ArkVoter ark_helpers_getArkVoter_fromJSON(const cJSON * const json);
+
+ArkTransaction ark_helpers_getArkTransaction_fromJSON(const cJSON * const json);
 
 int ark_helpers_isNetworkNull(ArkNetwork network);
 

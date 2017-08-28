@@ -3,81 +3,112 @@
 
 #include <stdio.h>
 
+/// --------------------------------------------------
+/// ENUMERATIONS
+/// --------------------------------------------------
+
 typedef enum { DEVELOPMENT, MAIN } ARKNETWORKTYPE;
 
 typedef enum { OK, EUNAVAILABLE, ETIMEOUT } ARKPEERSTATUS;
 
+typedef enum { SENDARK, SECONDSIGNATURE, CREATEDELEGATE, VOTE, MULTISIGNATURE } ARKTRANSACTIONTYPE;
+
+/// --------------------------------------------------
+/// STRUCTURES
+/// --------------------------------------------------
+
 typedef struct {
-    char *data;
-    size_t size;
+    char*   data;
+    size_t  size;
 } ArkRestResponse;
 
 typedef struct {
-    char* ip;
-    int port;
-    char* version;
-    char* os;
-    int height;
-    ARKPEERSTATUS status;
-    int delay;
+    int             delay;
+    int             height;
+    char*           ip;
+    char*           os;
+    int             port;
+    char*           version;
+    ARKPEERSTATUS   status;
 } ArkPeer;
 
 typedef struct {
-    int length;
-    ArkPeer* data;
+    int         length;
+    ArkPeer*    data;
 } ArkPeerArray;
 
 typedef struct {
+    long delegate;
+    long multiSignature;
+    long secondSignature;
     long send;
     long vote;
-    long delegate;
-    long secondSignature;
-    long multiSignature;
 } ArkFee;
 
 typedef struct {
-    char* id;
-    int height;
+    char*   id;
+    int     height;
 } ArkBlockHeight;
 
 typedef struct {
-    char* username;
-    char* address;
-    char* publicKey;
-    char* vote;
-    long producedBlocks;
-    long missedBlocks;
-    int rate;
-    double approval;
-    double productivity;
+    char*   address;
+    double  approval;
+    long    missedBlocks;
+    long    producedBlocks;
+    double  productivity;
+    char*   publicKey;
+    int     rate;
+    char*   username;
+    char*   vote;
 } ArkDelegate;
 
 typedef struct {
-    int length;
-    ArkDelegate* data;
+    int             length;
+    ArkDelegate*    data;
 } ArkDelegateArray;
 
 typedef struct {
-    char* username;
-    char* address;
-    char* publicKey;
-    long balance;
+    char*   address;
+    long    balance;
+    char*   publicKey;
+    char*   username;
 } ArkVoter;
 
 typedef struct {
-    int length;
-    ArkVoter* data;
+    int         length;
+    ArkVoter*   data;
 } ArkVoterArray;
 
 typedef struct {
-    char* netHash;
-    char* token;
-    char* symbol;
-    char* explorer;
-    int version;
+    char*   explorer;
+    char*   netHash;
+    char*   symbol;
+    char*   token;
+    int     version;
 } ArkNetwork;
 
-///CONSTANTS
+typedef struct {
+    double              amount;
+    //                  ASSET
+    char*               blockId;
+    int                 confirmation;
+    double              fee;
+    int                 height;
+    char*               id;
+    char*               recipientId;
+    char*               secondSenderPublicKey;
+    char*               senderId;
+    char*               senderPublicKey;
+    char*               signature;
+    char*               signSignature;
+    time_t              timestamp;
+    ARKTRANSACTIONTYPE  type;
+    char*               vendorField;
+} ArkTransaction;
+
+/// --------------------------------------------------
+/// CONSTANTS
+/// --------------------------------------------------
 
 static const char* SeedArray[] =
 {

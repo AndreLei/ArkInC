@@ -372,6 +372,11 @@ ArkNetwork ark_api_network_autoconfigure(char *ip, int port)
     char url[255];
     snprintf(url, sizeof url, "%s:%d/api/loader/autoconfigure", ip, port);
 
+    /// Alternative of string concatenating
+    //size_t len = (size_t)snprintf(NULL, 0, "%s:%d/api/loader/autoconfigure", ip, port) + 1;
+    //char* url = malloc(len);
+    //snprintf(url, len, "%s:%d/api/loader/autoconfigure", ip, port);
+
     ArkNetwork network = {0};
     ArkRestResponse *ars = ark_api_get(url);
 
@@ -444,9 +449,51 @@ ArkPeerArray ark_api_peers(char* ip, int port)
     return apa;
 }
 
+ArkPeerArray ark_api_peers_getList(char* ip, int port)
+{
+    printf("[ARK API] Getting peer list: [IP = %s, Port: = %d]\n", ip, port);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/peer/list", ip, port);
+
+    ArkPeerArray apa = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return apa;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return apa;
+
+    cJSON *peers = cJSON_GetObjectItem(root, "peers");
+    int total = cJSON_GetArraySize(peers);
+
+    ArkPeer *data = malloc(total * sizeof(ArkPeer));
+    if (!data)
+        return apa;
+
+    for (int i = 0; i < total; i++)
+    {
+        cJSON *peerJson = cJSON_GetArrayItem(peers, i);
+
+        data[i] = ark_helpers_getArkPeer_fromJSON(peerJson);
+    }
+
+    apa.length = total;
+    apa.data = data;
+
+    free(peers);
+    free(root);
+    ars = NULL;
+
+    return apa;
+}
+
 ArkPeer ark_api_peers_get(ArkPeer peer, char *ip, int port)
 {
-    printf("[ARK API] Getting ArkPeers details: [IP = %s, Port = %d]\n", ip, port);
+    printf("[ARK API] Getting ArkPeer details: [IP = %s, Port = %d]\n", ip, port);
 
     char url[255];
     snprintf(url, sizeof url, "%s:%d/api/peers/get?port=%d&ip=%s", peer.ip, peer.port, port, ip);
@@ -471,6 +518,81 @@ ArkPeer ark_api_peers_get(ArkPeer peer, char *ip, int port)
     ars = NULL;
 
     return arkpeer;
+}
+
+int ark_api_peers_getStatus(char* ip, int port)
+{
+    printf("[ARK API] Getting ArkPeer status: [IP = %s, Port: = %d]\n", ip, port);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/api/peer/status?port=%d&ip=%s", ip, port, port, ip);
+
+    ArkPeerArray apa = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return 0;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return 0;
+
+    cJSON *peers = cJSON_GetObjectItem(root, "peers");
+    int total = cJSON_GetArraySize(peers);
+
+    ArkPeer *data = malloc(total * sizeof(ArkPeer));
+    if (!data)
+        return 0;
+
+    for (int i = 0; i < total; i++)
+    {
+        cJSON *peerJson = cJSON_GetArrayItem(peers, i);
+
+        data[i] = ark_helpers_getArkPeer_fromJSON(peerJson);
+    }
+
+    apa.length = total;
+    apa.data = data;
+
+    free(peers);
+    free(root);
+    ars = NULL;
+
+    return 1;
+}
+
+/// --------------------------------------------------
+/// ARK API - TRANSACTION(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkTransaction ark_api_transactions_get(char* id)
+{
+    printf("[ARK API] Getting ArkTransaction details: [ID = %s]\n", id);
+
+    char url[255];
+    snprintf(url, sizeof url, "%s:%d/transactions/get?id=%s", "TBD", 0, id);
+
+    ArkTransaction arkTransaction = {0};
+    ArkRestResponse *ars = ark_api_get(url);
+
+    if (ars->size == 0 || ars->data == NULL)
+        return arkTransaction;
+
+    cJSON *root = cJSON_Parse(ars->data);
+
+    if (ark_helpers_isResponseSuccess(root) == 0)
+        return arkTransaction;
+
+    cJSON *transactionJson = cJSON_GetObjectItem(root, "transaction");
+
+    arkTransaction = ark_helpers_getArkTransaction_fromJSON(transactionJson);
+
+    free(transactionJson);
+    free(root);
+    ars = NULL;
+
+    return arkTransaction;
 }
 
 /// --------------------------------------------------

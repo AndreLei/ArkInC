@@ -45,7 +45,7 @@ int ark_core_setEnvrionment(ARKNETWORKTYPE networkType)
 
 int ark_core_filterPeers()
 {
-    printf("[ARK CORE] Filtering peers (valid are Peers with status OK)...\n");
+    printf("[ARK CORE] Filtering peers (valid are ArkPeers with status OK)...\n");
 
     ArkPeerArray tuple = ark_api_peers(global_selectedPeer.ip, global_selectedPeer.port);
 

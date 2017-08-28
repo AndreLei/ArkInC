@@ -66,7 +66,18 @@ ArkNetwork ark_api_network_autoconfigure(char *ip, int port);
 
 ArkPeerArray ark_api_peers(char* ip, int port);
 
+ArkPeerArray ark_api_peers_getList(char* ip, int port);
+
 ArkPeer ark_api_peers_get(ArkPeer peer, char *ip, int port);
+
+// NOT WORKING YET
+int ark_api_peers_getStatus(char* ip, int port);
+
+/// --------------------------------------------------
+/// ARK API - TRANSACTION(S) FUNCTIONS
+/// --------------------------------------------------
+
+ArkTransaction ark_api_transactions_get(char* id);
 
 /// --------------------------------------------------
 /// ARK API - VOTER(S) FUNCTIONS
