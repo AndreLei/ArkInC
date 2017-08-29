@@ -1,4 +1,4 @@
-/*
+﻿/*
 
  The MIT License (MIT)
 
@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-#include <event2/event.h>
+//#include <event2/event.h>
 
 #include "btc.h"
 #include "buffer.h"

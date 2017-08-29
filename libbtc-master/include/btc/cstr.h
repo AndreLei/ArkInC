@@ -1,4 +1,4 @@
-/*
+﻿/*
 
  The MIT License (MIT)
 
@@ -33,6 +33,11 @@ extern "C" {
 #endif
 
 #include "btc.h"
+
+#if defined(_MSC_VER)
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t;
+#endif
 
 #include <stddef.h>
 

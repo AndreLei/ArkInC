@@ -1,4 +1,4 @@
-/*
+﻿/*
 
  The MIT License (MIT)
 
@@ -37,8 +37,8 @@ extern "C" {
 #include "chainparams.h"
 
 #include <stdio.h>
-#include <logdb/logdb.h>
-#include <logdb/logdb_rec.h>
+//#include <logdb/logdb.h>
+//#include <logdb/logdb_rec.h>
 
 /* headers database interface, flexible function pointers in
    order to support multiple backends

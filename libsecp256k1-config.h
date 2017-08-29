@@ -105,16 +105,16 @@
 #undef USE_FIELD_5X52
 
 /* Define this symbol to use the native field inverse implementation */
-#undef USE_FIELD_INV_BUILTIN
+#define USE_FIELD_INV_BUILTIN
 
 /* Define this symbol to use the num-based field inverse implementation */
-#define USE_FIELD_INV_NUM
+#undef USE_FIELD_INV_NUM
 
 /* Define this symbol to use the gmp implementation for num */
 #define USE_NUM_GMP
 
 /* Define this symbol to use no num implementation */
-#undef USE_NUM_NONE
+#define USE_NUM_NONE
 
 /* Define this symbol to use the 4x64 scalar implementation */
 #undef USE_SCALAR_4X64

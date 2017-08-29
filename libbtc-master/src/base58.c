@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Copyright (c) 2012-2014 Luke Dashjr
  * Copyright (c) 2013-2014 Pavol Rusnak
  *

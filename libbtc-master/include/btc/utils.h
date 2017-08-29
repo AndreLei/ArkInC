@@ -1,4 +1,4 @@
-/*
+﻿/*
 
  The MIT License (MIT)
 
@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 #include "btc.h"
-#include <btc/cstr.h>
+#include "cstr.h"
 
 #include <stddef.h>
 #include <stdint.h>
