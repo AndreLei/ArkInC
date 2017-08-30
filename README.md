@@ -65,3 +65,4 @@ See also the list of [contributors](https://google.com) who participated in this
 * https://github.com/curl/curl
 * https://github.com/DaveGamble/cJSON
 * https://github.com/libbtc/libbtc
+* https://github.com/skandhurkat/Getopt-for-Visual-Studio

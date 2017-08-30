@@ -26,6 +26,7 @@ set(SOURCE_FILES
     arkhelpers.h
     arkhelpers.c
     arkmodels.h
+    getopt.h
     jsonresponse.h
     jsonresponse.c
     main.h
