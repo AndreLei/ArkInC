@@ -13,6 +13,9 @@ include_directories(${CMAKE_SOURCE_DIR}/secp256k1/src)
 set(SOURCE_FILES
     arkapi.h
     arkapi.c
+    arkbla.h
+    arkbla.c
+    arkconstants.h
     arkcore.h
     arkcore.c
     arkhelpers.h

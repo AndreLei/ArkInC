@@ -3,6 +3,7 @@
 #include <math.h>
 #include <time.h>
 
+#include "arkconstants.h"
 #include "arkhelpers.h"
 #include "cJSON.h"
 

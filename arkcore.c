@@ -77,9 +77,9 @@ ArkPeer ark_core_get_randomPeer()
     int peerCount = 0;
 
     if (global_networkType == MAIN)
-        peerCount = sizeof(SeedArray) / sizeof(SeedArray[0]);
+        peerCount = sizeof(seedArray) / sizeof(seedArray[0]);
     if (global_networkType == DEVELOPMENT)
-        peerCount = sizeof(SeedArrayTest) / sizeof(SeedArrayTest[0]);
+        peerCount = sizeof(seedArrayTest) / sizeof(seedArrayTest[0]);
 
     time_t t;
     srand((unsigned) time(&t));
@@ -87,9 +87,9 @@ ArkPeer ark_core_get_randomPeer()
 
     char* element;
     if (global_networkType == MAIN)
-        element = SeedArray[index];
+        element = seedArray[index];
     if (global_networkType == DEVELOPMENT)
-        element = SeedArrayTest[index];
+        element = seedArrayTest[index];
 
     int x = strchr(element, ':') - element;
     int y = strlen(element) - x - 1;
